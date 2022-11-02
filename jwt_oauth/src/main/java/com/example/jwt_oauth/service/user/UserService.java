@@ -84,25 +84,22 @@ public class UserService {
     public ResponseEntity<UserDto> update(UserDto user){
         User findUser = userRepository.findByEmail(user.getEmail()).orElseThrow( () -> new UsernameNotFoundException("not found user"));
 
-        UserDto userDto = UserDto.builder()
-                                    .name(findUser.getName())
-                                    .email(findUser.getEmail())
-                                    .useyn(findUser.getUseyn())
-                                    .build();
-        userDto.setName(user.getName());
-        userDto.setEmail(user.getEmail());
-        userDto.setUseyn(userDto.getUseyn());
-
         // UserDto userDto = UserDto.builder()
-        //                             .name(user.getName())
-        //                             .email(user.getEmail())
-        //                             .useyn(user.getUseyn())
+        //                             .name(findUser.getName())
+        //                             .email(findUser.getEmail())
+        //                             .useyn(findUser.getUseyn())
         //                             .build();
+        // userDto.setName(user.getName());
+        // userDto.setEmail(user.getEmail());
+        // userDto.setUseyn(userDto.getUseyn());
+        UserDto dto = toDto(findUser);
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setUseyn(user.getUseyn());
         
-        userRepository.save(toUser(userDto));
-        
-        
-        return ResponseEntity.ok(userDto);
+        userRepository.save(toUser(dto));
+
+        return ResponseEntity.ok(dto);
     }
 
     public ResponseEntity<UserDto> delete(String userEmail){
@@ -123,8 +120,16 @@ public class UserService {
         return User.builder()
                     .name(userDto.getName())
                     .email(userDto.getEmail())
-                    .useyn(UserEnum.Y)
+                    .useyn(userDto.getUseyn())
                     .build();
+    }
+
+    private UserDto toDto(User user){
+        return UserDto.builder()
+                        .name(user.getName())
+                        .email(user.getEmail())
+                        .useyn(user.getUseyn())
+                        .build();
     }
 
     

@@ -97,7 +97,7 @@ public class UserServiceTest {
     void testUpdate() {
         UserDto updateUser = UserDto.builder()
                                     .name("test2")
-                                    .email("test@naver.com")
+                                    .email("test1@naver.com")
                                     .useyn(UserEnum.Y)
                                     .build();
 
