@@ -110,7 +110,6 @@ public class UserService {
                                     .email(findUser.getEmail())
                                     .useyn(UserEnum.N)
                                     .build();
-        // userRepository.delete(findUser);
         
         return ResponseEntity.ok(userDto);
     }
@@ -123,6 +122,9 @@ public class UserService {
                     .useyn(userDto.getUseyn())
                     .build();
     }
+
+
+
 
     private UserDto toDto(User user){
         return UserDto.builder()
