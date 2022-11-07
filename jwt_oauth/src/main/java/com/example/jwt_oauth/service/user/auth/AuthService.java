@@ -74,7 +74,7 @@ public class AuthService {
         return ResponseEntity.ok(true);
     }
 
-    public ResponseEntity<?> signin(SignInRequest signInRequest){
+    public ResponseEntity<Token> signin(SignInRequest signInRequest){
 
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword())
@@ -86,12 +86,12 @@ public class AuthService {
                                 .userEmail(tokenMapping.getUserEmail())
                                 .refreshToken(tokenMapping.getRefreshToken())
                                 .build();
-        tokenRepository.save(token);
+        // tokenRepository.save(token);
         
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(tokenRepository.save(token));
     }
 
-    public ResponseEntity<?> signup(SignUpRequest signUpRequest){
+    public ResponseEntity<ApiResponse> signup(SignUpRequest signUpRequest){
         
         User user = User.builder()
                             .name(signUpRequest.getName())

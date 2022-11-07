@@ -2,10 +2,13 @@ package com.example.jwt_oauth.service.user;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.List;
 
 import javax.transaction.Transactional;
 
 import org.apache.catalina.authenticator.SpnegoAuthenticator.AuthenticateAction;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +41,22 @@ public class UserServiceTest {
     @Autowired
     private UserService userService;
 
+    @BeforeEach
+    public void setup(){
+        User newUser = User.builder()
+                                    .name("test")
+                                    .email("test@naver.com")
+                                    .imageUrl("test imageUrl")
+                                    .emailVerified(false)
+                                    .password("password")
+                                    .provider(Provider.kakao)
+                                    .providerId("provierId")
+                                    .role(Role.USER)
+                                    .useyn(UserEnum.Y)
+                                    .build();
+
+        userRepository.save(newUser);
+    }
 
     
     @Test
@@ -70,23 +89,10 @@ public class UserServiceTest {
 
     @Test
     void testRead() {
-        // UserDto newUser = UserDto.builder()
-        //                             .name("test")
-        //                             .email("test@naver.com")
-        //                             .imageUrl("test imageUrl")
-        //                             .emailVerified(false)
-        //                             .password("password")
-        //                             .provider(Provider.kakao)
-        //                             .providerId("provierId")
-        //                             .role(Role.USER)
-        //                             .useyn(UserEnum.Y)
-        //                             .build();
 
-        // log.info("{}", userService.create(newUser).getBody()); 
-        
-        // log.info("{}",userRepository.findAll());
         
         ResponseEntity<UserDto> responseEntity = userService.read("test2@naver.com");
+        
         
         log.info("{}, {}", responseEntity.getBody().getEmail(), responseEntity.getBody().getId());
         
@@ -103,6 +109,15 @@ public class UserServiceTest {
 
         ResponseEntity<UserDto> responseEntity = userService.update(updateUser);
         log.info("{}, {}, {}", responseEntity.getBody().getEmail(), responseEntity.getBody().getName(),responseEntity.getBody().getUseyn());
+    }
+
+    @Test
+    void testReadAll(){
+        List<User> responseEntity = userRepository.findAll();
+        
+        for (User user : responseEntity) {
+            log.info("{}", user.toString());
+        }
     }
 
     
