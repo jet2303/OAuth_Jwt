@@ -30,9 +30,11 @@ import com.example.jwt_oauth.repository.auth.TokenRepository;
 import com.example.jwt_oauth.repository.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     
     private final AuthenticationManager authenticationManager;
@@ -63,18 +65,35 @@ public class AuthService {
         return ResponseEntity.ok("delete 완료");
     }
 
-    public ResponseEntity<?> modify(UserPrincipal userPrincipal, ChangePasswordRequest changePasswordRequest){
+    public ResponseEntity<ApiResponse> modify(UserPrincipal userPrincipal, ChangePasswordRequest changePasswordRequest){
         Optional<User> user = userRepository.findById(userPrincipal.getId());
         Boolean chkPassword = passwordEncoder.matches(changePasswordRequest.getOldPassword(), 
                                                         user.get().getPassword() );
-        chkPassword(chkPassword);
+        if(!chkPassword(chkPassword)){
+            return ResponseEntity.ok(
+                        ApiResponse.builder().check(true).information(
+                                Message.builder().message("기존 비밀번호가 일치하지 않습니다.").build())
+                        .build());
+        }
         Boolean chkNewPassword = changePasswordRequest.getNewPassword().equals(changePasswordRequest.getChkNewPassword());
-        chkPassword(chkNewPassword);
+        if(!chkPassword(chkNewPassword)){
+            return ResponseEntity.ok(
+                        ApiResponse.builder().check(true).information(
+                                Message.builder().message("새로운 비밀번호가 일치하지 않습니다.").build())
+                        .build());
+        }
         
-        return ResponseEntity.ok(true);
+        return ResponseEntity.ok(
+            ApiResponse.builder()
+                        .information(Message.builder().message("수정되었습니다.").build())
+                        .build()
+        );
     }
 
-    public ResponseEntity<Token> signin(SignInRequest signInRequest){
+    public ResponseEntity<AuthResponse> signin(SignInRequest signInRequest){
+
+        log.info("{}", passwordEncoder.matches(signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword() ) );
+        log.info("{}, {}", signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword());
 
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword())
@@ -87,8 +106,9 @@ public class AuthService {
                                 .refreshToken(tokenMapping.getRefreshToken())
                                 .build();
         // tokenRepository.save(token);
+        AuthResponse authResponse = AuthResponse.builder().accessToken(tokenMapping.getAccessToken()).refreshToken(token.getRefreshToken()).build();
         
-        return ResponseEntity.ok(tokenRepository.save(token));
+        return ResponseEntity.ok(authResponse);
     }
 
     public ResponseEntity<ApiResponse> signup(SignUpRequest signUpRequest){
@@ -96,7 +116,8 @@ public class AuthService {
         User user = User.builder()
                             .name(signUpRequest.getName())
                             .email(signUpRequest.getEmail())
-                            .password(signUpRequest.getPassword())
+                            // .password(signUpRequest.getPassword())
+                            .password(passwordEncoder.encode(signUpRequest.getPassword()))
                             .provider(Provider.local)
                             .role(Role.ADMIN)
                             .build();
