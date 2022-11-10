@@ -72,7 +72,7 @@ public class AuthServiceTest {
         signInRequest.setPassword("password");
         // signInRequest.setPassword(passwordEncoder.encode("password"));
 
-
+        
         ResponseEntity<AuthResponse> result = authService.signin(signInRequest);
         
         
