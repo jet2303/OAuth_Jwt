@@ -116,7 +116,6 @@ public class AuthService {
         User user = User.builder()
                             .name(signUpRequest.getName())
                             .email(signUpRequest.getEmail())
-                            // .password(signUpRequest.getPassword())
                             .password(passwordEncoder.encode(signUpRequest.getPassword()))
                             .provider(Provider.local)
                             .role(Role.ADMIN)

@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import com.example.jwt_oauth.config.security.token.UserPrincipal;
 import com.example.jwt_oauth.domain.user.User;
 import com.example.jwt_oauth.payload.request.auth.SignUpRequest;
 import com.example.jwt_oauth.repository.user.UserRepository;
@@ -68,18 +70,21 @@ public class AuthControllerTest {
         String content = objectMapper.writeValueAsString(signUpRequest);
 
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/signup")
-                                                .content(content)
-                                                ).andDo(MockMvcResultHandlers.print());
+        MvcResult mvcResult =
+        mockMvc.perform(MockMvcRequestBuilders.post("/auth/signup1")
+                                                .content(content) )
+                                                .andDo(MockMvcResultHandlers.print())
+                                                .andReturn();
            
-        List<User> userList = userRepository.findAll();    
-        for (User user : userList) {
-            log.info("{}", user.getEmail());
-        }
+        log.info("{}", mvcResult.getResponse().getContentAsString());
+        // List<User> userList = userRepository.findAll();    
+        // for (User user : userList) {
+        //     log.info("{}", user.getEmail());
+        // }
     }
 
     @Test
     void testWhoAmI() {
-
+        
     }
 }

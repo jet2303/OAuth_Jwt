@@ -16,6 +16,7 @@ import com.example.jwt_oauth.config.security.handler.CustomSimpleUrlAuthenticati
 import com.example.jwt_oauth.config.security.handler.CustomSimpleUrlAuthenticationSuccessHandler;
 import com.example.jwt_oauth.config.security.token.CustomOncePerRequestFilter;
 import com.example.jwt_oauth.repository.auth.CustomAuthorizationRequestRepository;
+import com.example.jwt_oauth.service.user.auth.CustomDefaultOAuth2UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +28,8 @@ public class WebSecurityConfig {
     private final CustomSimpleUrlAuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final CustomSimpleUrlAuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     private final CustomAuthorizationRequestRepository customAuthorizationRequestRepository;
+
+    // private final CustomDefaultOAuth2UserService customDefaultOAuth2UserService;
     // private final CustomOncePerRequestFilter customOncePerRequestFilter;
 
     @Bean

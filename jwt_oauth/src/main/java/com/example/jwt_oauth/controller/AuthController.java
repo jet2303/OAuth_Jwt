@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-// @RequestMapping("/")
+@RequestMapping(value = "/auth")
 public class AuthController {
     
     
@@ -51,8 +51,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/signin")
-    public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest signInRequest
-    ) {
+    public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest signInRequest) {
         return authService.signin(signInRequest);
     }
 
@@ -73,6 +72,11 @@ public class AuthController {
     public ResponseEntity<?> signout(@CurrentUser UserPrincipal userPrincipal, 
                                         @Valid @RequestBody RefreshTokenRequest tokenRefreshRequest) {
         return authService.signout(tokenRefreshRequest);
+    }
+
+    @PostMapping(value = "/signup1")
+    public String test(@RequestBody SignUpRequest signUpRequest){
+        return "test";
     }
 
 }
