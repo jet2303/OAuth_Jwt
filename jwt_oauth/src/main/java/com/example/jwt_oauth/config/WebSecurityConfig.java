@@ -29,7 +29,7 @@ public class WebSecurityConfig {
     private final CustomSimpleUrlAuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     private final CustomAuthorizationRequestRepository customAuthorizationRequestRepository;
 
-    // private final CustomDefaultOAuth2UserService customDefaultOAuth2UserService;
+    private final CustomDefaultOAuth2UserService customOAuth2UserService;
     // private final CustomOncePerRequestFilter customOncePerRequestFilter;
 
     @Bean
@@ -41,14 +41,15 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     
         http.authorizeRequests()            
-                .antMatchers("/h2-console/**",).permitAll()                    
+                .antMatchers("/h2-console/**","/auth/**").permitAll()                    
                 .anyRequest().authenticated()
                 .and()
             .headers()
                 .frameOptions().disable()
                 .and()                
             .formLogin()
-                .permitAll()
+                // .permitAll()
+                .loginPage("/auth/loginPage")
                 .and()                
             .logout()
                 .permitAll()
@@ -56,6 +57,7 @@ public class WebSecurityConfig {
             .csrf()
                 .disable()
             .oauth2Login()
+                .loginPage("/auth/loginPage")
                 .authorizationEndpoint()
                     .baseUri("/oauth2/authorize")
                     .authorizationRequestRepository(customAuthorizationRequestRepository)
@@ -64,7 +66,7 @@ public class WebSecurityConfig {
                     .baseUri("/oauth2/callback/*")
                     .and()
                 .userInfoEndpoint()
-                    // .userService(customOAuth2UserService)
+                    .userService(customOAuth2UserService)
                     .and()
                 .successHandler(oAuth2AuthenticationSuccessHandler)
                 .failureHandler(oAuth2AuthenticationFailureHandler)

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -72,6 +73,7 @@ public class AuthControllerTest {
 
         MvcResult mvcResult =
         mockMvc.perform(MockMvcRequestBuilders.post("/auth/signup1")
+                                                .contentType(MediaType.APPLICATION_JSON_VALUE)
                                                 .content(content) )
                                                 .andDo(MockMvcResultHandlers.print())
                                                 .andReturn();
@@ -86,5 +88,12 @@ public class AuthControllerTest {
     @Test
     void testWhoAmI() {
         
+    }
+
+    @Test
+    void testLoginPage() throws Exception{
+        mockMvc.perform(MockMvcRequestBuilders.get("/auth/loginPage")
+                                                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                                                .andDo(MockMvcResultHandlers.print());
     }
 }

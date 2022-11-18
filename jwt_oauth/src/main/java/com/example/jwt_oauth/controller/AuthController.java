@@ -3,7 +3,7 @@ package com.example.jwt_oauth.controller;
 import javax.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +24,8 @@ import lombok.RequiredArgsConstructor;
 
 
 @RequiredArgsConstructor
-@RestController
+@Controller
+// @RestController
 @RequestMapping(value = "/auth")
 public class AuthController {
     
@@ -77,6 +78,11 @@ public class AuthController {
     @PostMapping(value = "/signup1")
     public String test(@RequestBody SignUpRequest signUpRequest){
         return "test";
+    }
+
+    @GetMapping(value = "/loginPage")
+    public String loginPage(){
+        return "login";
     }
 
 }
