@@ -3,10 +3,11 @@ package com.example.jwt_oauth.payload.request.auth;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 
-@Getter
+@Data
 public class ChangePasswordRequest {
 
     @NotBlank

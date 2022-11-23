@@ -75,11 +75,6 @@ public class AuthController {
         return authService.signout(tokenRefreshRequest);
     }
 
-    @PostMapping(value = "/signup1")
-    public String test(@RequestBody SignUpRequest signUpRequest){
-        return "test";
-    }
-
     @GetMapping(value = "/loginPage")
     public String loginPage(){
         return "login";

@@ -7,10 +7,15 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import org.apache.catalina.authenticator.SpnegoAuthenticator.AuthenticateAction;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 // @ActiveProfiles("test")
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
 public class UserServiceTest {
     
@@ -40,6 +46,7 @@ public class UserServiceTest {
 
     @Autowired
     private UserService userService;
+
 
     @BeforeEach
     public void setup(){
@@ -60,7 +67,6 @@ public class UserServiceTest {
 
     
     @Test
-    @Transactional
     void testCreate() {
         
         UserDto newUser = UserDto.builder()
@@ -81,20 +87,21 @@ public class UserServiceTest {
     @Test
     @Transactional
     void testDelete() {
-        User newUser = userRepository.findByName("test1").get();
+        User newUser = userRepository.findByName("test").get();
+        log.info("{}", newUser);
         ResponseEntity<UserDto> responseEntity = userService.delete(newUser.getEmail());
 
-        log.info("{}, {}", responseEntity.getBody().getEmail(), responseEntity.getBody().getUseyn());
+        log.info("{}", responseEntity.getBody());
     }
 
     @Test
     void testRead() {
 
         
-        ResponseEntity<UserDto> responseEntity = userService.read("test2@naver.com");
+        ResponseEntity<UserDto> responseEntity = userService.read("test@naver.com");
         
         
-        log.info("{}, {}", responseEntity.getBody().getEmail(), responseEntity.getBody().getId());
+        log.info("{}", responseEntity.getBody());
         
     }
 
@@ -102,8 +109,8 @@ public class UserServiceTest {
     @Transactional
     void testUpdate() {
         UserDto updateUser = UserDto.builder()
-                                    .name("test2")
-                                    .email("test1@naver.com")
+                                    .name("testUpdate")
+                                    .email("test@naver.com")
                                     .useyn(UserEnum.Y)
                                     .build();
 
@@ -120,5 +127,8 @@ public class UserServiceTest {
         }
     }
 
-    
+    @AfterEach
+    public void deleteall(){
+        userRepository.deleteAll();        
+    }
 }

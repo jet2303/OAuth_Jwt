@@ -48,7 +48,8 @@ public class AuthService {
     private final TokenRepository tokenRepository;
 
     public ResponseEntity<?> whoAmI(UserPrincipal userPrincipal){
-        Optional<User> user = userRepository.findById(userPrincipal.getId());
+        // Optional<User> user = userRepository.findById(userPrincipal.getId());
+        Optional<User> user = userRepository.findByEmail(userPrincipal.getEmail());
 
         return ResponseEntity.ok(user.get());
     }
@@ -62,7 +63,12 @@ public class AuthService {
         tokenRepository.delete(token.get());
 
 
-        return ResponseEntity.ok("delete 완료");
+        return ResponseEntity.ok(ApiResponse.builder()
+                                            .check(true)
+                                            .information(Message.builder()
+                                                                .message("Delete 성공")
+                                                                .build())
+                                            .build());
     }
 
     public ResponseEntity<ApiResponse> modify(UserPrincipal userPrincipal, ChangePasswordRequest changePasswordRequest){
@@ -92,8 +98,8 @@ public class AuthService {
 
     public ResponseEntity<AuthResponse> signin(SignInRequest signInRequest){
 
-        log.info("{}", passwordEncoder.matches(signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword() ) );
-        log.info("{}, {}", signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword());
+        // log.info("{}", passwordEncoder.matches(signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword() ) );
+        // log.info("{}, {}", signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword());
 
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword())
@@ -105,7 +111,7 @@ public class AuthService {
                                 .userEmail(tokenMapping.getUserEmail())
                                 .refreshToken(tokenMapping.getRefreshToken())
                                 .build();
-        // tokenRepository.save(token);
+        tokenRepository.save(token);
         AuthResponse authResponse = AuthResponse.builder().accessToken(tokenMapping.getAccessToken()).refreshToken(token.getRefreshToken()).build();
         
         return ResponseEntity.ok(authResponse);
@@ -119,6 +125,7 @@ public class AuthService {
                             .password(passwordEncoder.encode(signUpRequest.getPassword()))
                             .provider(Provider.local)
                             .role(Role.ADMIN)
+                            
                             .build();
 
         userRepository.save(user);
@@ -178,7 +185,7 @@ public class AuthService {
     private boolean valid(String refreshToken){
 
         boolean validateCheck = customTokenProviderService.validateToken(refreshToken);
-
+        log.info("{}",tokenRepository.findAll());
         Optional<Token> token = tokenRepository.findByRefreshToken(refreshToken);
 
         Authentication authentication = customTokenProviderService.getAuthenticationByEmail(token.get().getUserEmail());
