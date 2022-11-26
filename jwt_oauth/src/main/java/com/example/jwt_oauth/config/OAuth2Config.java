@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
 import lombok.Data;
 
@@ -43,4 +45,5 @@ public class OAuth2Config {
         return oauth2;
     }
 
+    
 }

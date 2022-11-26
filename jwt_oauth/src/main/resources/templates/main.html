@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org"
+	  xmlns:sec="http://thymeleaf.org/extras/spring-security"
+>
+<head>
+<meta charset="UTF-8">
+<title>main</title>
+</head>
+<body>
+	<h1 text-align="center">main 페이지 입니다.</h1>
+	
+	<th:block sec:authorize="isAuthenticated()">
+		<div ali ="right">
+		<!-- 스프링 시큐리티가 제공하는 Principal 객체는 담겨있는것이
+		     아이디, 패스워드, 권한 3가지만 담겨있다 만약 다른 정보들도 같이담고싶으면 개인적으로 커스텀 마이징해야한다! -->
+			<h2><span sec:authentication="Principal.username"></span>님 환영합니다!</h2>
+			<h2><span sec:authentication="Principal.memberNo"></span>님 환영합니다!</h2>
+			<button onclick="location.href='/member/logout'">로그아웃</button>
+		</div>
+	</th:block>
+	<!-- 권한이 없는 사용자 일시 -->
+	<th:block sec:authorize="isAnonymous()">
+		<div text-align="right">
+			<h3>로그인이 필요한 서비스입니다.</h3>
+			<button onclick="location.href='/member/login'">로그인</button>
+			<button>회원가입</button>
+		</div>
+	</th:block>
+	<div text-align="left">
+		<!-- 모든 사용자가 볼수있는 메뉴 -->
+		<button>메뉴보기</button>
+		
+		<!-- 아래까지가 회원이 볼수있는 메뉴 -->
+		<th:block sec:authorize="hasRole('MEMBER')">
+			<button>주문하기</button>
+		</th:block>
+		
+		<!-- 아래까지가 관리자가 볼수있는 메뉴 -->
+		<th:block sec:authorize="hasRole('ADMIN')">
+			<button>관리자 메뉴</button>
+		</th:block>
+		
+	</div>
+</body>
+</html>

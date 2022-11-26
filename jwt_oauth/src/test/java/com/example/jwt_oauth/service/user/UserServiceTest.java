@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +68,7 @@ public class UserServiceTest {
 
     
     @Test
+    @Transactional
     void testCreate() {
         
         UserDto newUser = UserDto.builder()
@@ -95,6 +97,7 @@ public class UserServiceTest {
     }
 
     @Test
+    @Order(1)
     void testRead() {
 
         
@@ -119,6 +122,7 @@ public class UserServiceTest {
     }
 
     @Test
+    @Disabled
     void testReadAll(){
         List<User> responseEntity = userRepository.findAll();
         

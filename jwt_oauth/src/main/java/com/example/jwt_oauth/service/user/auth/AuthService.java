@@ -1,9 +1,13 @@
 package com.example.jwt_oauth.service.user.auth;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
+import java.lang.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -117,6 +121,7 @@ public class AuthService {
         return ResponseEntity.ok(authResponse);
     }
 
+    
     public ResponseEntity<ApiResponse> signup(SignUpRequest signUpRequest){
         
         User user = User.builder()
@@ -130,15 +135,23 @@ public class AuthService {
 
         userRepository.save(user);
         
+        System.out.println("1");
         URI location = ServletUriComponentsBuilder
-                            .fromCurrentContextPath().path("/auth/")
-                            .buildAndExpand(user.getId()).toUri();
-
+                            .fromCurrentContextPath()
+                            .path("/auth/loginPage")
+                            // .buildAndExpand(user.getId())
+                            .buildAndExpand()
+                            .toUri();
+        
+        log.info("{}",userRepository.findAll());
+        System.out.println("2");
         ApiResponse apiResponse = ApiResponse.builder()
                                                 .check(true)
                                                 .information(Message.builder().message("signup success").build())
-                                                .build();    
-        return ResponseEntity.created(location).body(apiResponse);
+                                                .build();       
+        System.out.println("3");        
+        return ResponseEntity.created(location).body(apiResponse);  
+
     }
 
     public ResponseEntity<?> refresh(RefreshTokenRequest refreshTokenRequest){

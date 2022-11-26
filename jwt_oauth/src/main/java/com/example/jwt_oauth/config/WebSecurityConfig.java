@@ -1,5 +1,12 @@
 package com.example.jwt_oauth.config;
 
+import java.io.IOException;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,9 +15,19 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.ViewResolver;
+import org.thymeleaf.spring5.ISpringTemplateEngine;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import com.example.jwt_oauth.config.security.handler.CustomSimpleUrlAuthenticationFailureHandler;
 import com.example.jwt_oauth.config.security.handler.CustomSimpleUrlAuthenticationSuccessHandler;
@@ -41,21 +58,42 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     
         http.authorizeRequests()            
-                .antMatchers("/h2-console/**","/auth/**").permitAll()                    
+                .antMatchers("/h2-console/**").permitAll()                    
+                .antMatchers("/auth/**").permitAll()
+                // .antMatchers("/auth/loginPage", "/auth/customSignup","/auth/signin", "/auth/signout","/auth/home").permitAll()
                 .anyRequest().authenticated()
                 .and()
             .headers()
                 .frameOptions().disable()
                 .and()                
             .formLogin()
-                // .permitAll()
+                .permitAll()
+                
                 .loginPage("/auth/loginPage")
+                .defaultSuccessUrl("/auth/home",true)
+                .loginProcessingUrl("/auth/signin")
+                .successHandler(new AuthenticationSuccessHandler() {
+                    
+                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                    Authentication authentication) throws IOException, ServletException{
+                        System.out.println("authentication : " + authentication.getName());
+                        response.sendRedirect("/");
+                    }
+                })
+                .failureHandler(new AuthenticationFailureHandler() {
+                    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+			                                            AuthenticationException exception) throws IOException, ServletException{
+                        System.out.println("exception : " + exception.getMessage());
+                        response.sendRedirect("/auth/home");
+                    }
+                })
                 .and()                
             .logout()
                 .permitAll()
                 .and()
             .csrf()
                 .disable()
+                            
             .oauth2Login()
                 .loginPage("/auth/loginPage")
                 .authorizationEndpoint()
@@ -98,6 +136,5 @@ public class WebSecurityConfig {
     }
 
     
-
-    // WebSecurityConfigurerAdapter
+    
 }
