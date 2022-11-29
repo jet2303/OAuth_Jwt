@@ -3,6 +3,8 @@ package com.example.jwt_oauth.controller;
 import javax.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,7 +57,7 @@ public class AuthController {
 
     @PostMapping(value = "/signin")
     // public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest signInRequest) {
-    public ResponseEntity<?> signin(SignInRequest signInRequest) {
+    public ResponseEntity<?> signin(@RequestBody SignInRequest signInRequest) {
         return authService.signin(signInRequest);
     }
 
@@ -92,7 +94,8 @@ public class AuthController {
     }
 
     @GetMapping(value = "/loginPage")
-    public String loginPage(){
+    public String loginPage(ModelAndView model){
+        model.addObject("SignInRequest", new SignInRequest());
         return "login";
     }
 
@@ -117,4 +120,10 @@ public class AuthController {
         return "main";
     }
 
+    @GetMapping(value = "/authtest")
+    public void authTest(){
+        // System.out.println(SecurityContextHolder.getContext().getAuthentication());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println(  auth.getPrincipal() + " " + auth.getCredentials() + " " + auth.getAuthorities() + " " + auth.getName());
+    }
 }

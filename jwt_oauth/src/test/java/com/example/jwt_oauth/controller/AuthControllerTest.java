@@ -281,6 +281,7 @@ public class AuthControllerTest {
                                                 .andDo(MockMvcResultHandlers.print());
     }
 
+
     private JSONObject signin() throws Exception{
         SignInRequest signInRequest = new SignInRequest();
         signInRequest.setEmail("test@naver.com");
@@ -292,7 +293,7 @@ public class AuthControllerTest {
                                                                         .accept(MediaType.APPLICATION_JSON_VALUE)
                                                                         )
                                         .andDo(MockMvcResultHandlers.print());
-
+        log.info("result = {}", actions.andReturn().getResponse().getContentAsString());
         JSONObject jsonObject = asStringToJson(actions.andReturn().getResponse().getContentAsString());
         return jsonObject;
     }

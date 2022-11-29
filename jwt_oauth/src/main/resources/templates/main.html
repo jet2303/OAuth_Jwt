@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://thymeleaf.org"
-	  xmlns:sec="http://thymeleaf.org/extras/spring-security"
+	  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+	  
 >
 <head>
 <meta charset="UTF-8">
@@ -14,7 +15,7 @@
 		<!-- 스프링 시큐리티가 제공하는 Principal 객체는 담겨있는것이
 		     아이디, 패스워드, 권한 3가지만 담겨있다 만약 다른 정보들도 같이담고싶으면 개인적으로 커스텀 마이징해야한다! -->
 			<h2><span sec:authentication="Principal.username"></span>님 환영합니다!</h2>
-			<h2><span sec:authentication="Principal.memberNo"></span>님 환영합니다!</h2>
+			<h2><span sec:authentication="principal"></span>님 환영합니다!</h2>
 			<button onclick="location.href='/member/logout'">로그아웃</button>
 		</div>
 	</th:block>

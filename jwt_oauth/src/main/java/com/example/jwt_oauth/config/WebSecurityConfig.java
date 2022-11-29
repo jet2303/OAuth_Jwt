@@ -71,13 +71,14 @@ public class WebSecurityConfig {
                 
                 .loginPage("/auth/loginPage")
                 .defaultSuccessUrl("/auth/home",true)
+                .failureUrl("/auth/loginPage")
                 .loginProcessingUrl("/auth/signin")
                 .successHandler(new AuthenticationSuccessHandler() {
                     
                     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                     Authentication authentication) throws IOException, ServletException{
                         System.out.println("authentication : " + authentication.getName());
-                        response.sendRedirect("/");
+                        response.sendRedirect("/auth/main");
                     }
                 })
                 .failureHandler(new AuthenticationFailureHandler() {
