@@ -2,8 +2,13 @@ package com.example.jwt_oauth.service.user.auth;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -122,20 +127,34 @@ public class AuthService {
     }
 
     
-    public ResponseEntity<ApiResponse> signup(SignUpRequest signUpRequest){
+    public ResponseEntity<ApiResponse> signup(SignUpRequest signUpRequest, HttpServletResponse response){
         
+        Optional<User> userChk = userRepository.findByEmail(signUpRequest.getEmail());
+        if(!userChk.isEmpty()){
+            response.setContentType("text/html; charset=euc-kr");
+            
+            try{
+                PrintWriter out = response.getWriter();
+                out.println("<script>alert('" + "이미 등록된 계정입니다." + "'); history.go(-1);</script>");
+                out.flush();
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+
+        }
+
         User user = User.builder()
                             .name(signUpRequest.getName())
                             .email(signUpRequest.getEmail())
                             .password(passwordEncoder.encode(signUpRequest.getPassword()))
                             .provider(Provider.local)
-                            .role(Role.ADMIN)
+                            .role(Role.valueOf(signUpRequest.getRole()))
                             
                             .build();
 
         userRepository.save(user);
         
-        System.out.println("1");
+        
         URI location = ServletUriComponentsBuilder
                             .fromCurrentContextPath()
                             .path("/auth/loginPage")
@@ -144,12 +163,12 @@ public class AuthService {
                             .toUri();
         
         log.info("{}",userRepository.findAll());
-        System.out.println("2");
+        
         ApiResponse apiResponse = ApiResponse.builder()
                                                 .check(true)
                                                 .information(Message.builder().message("signup success").build())
                                                 .build();       
-        System.out.println("3");        
+        
         return ResponseEntity.created(location).body(apiResponse);  
 
     }
@@ -181,18 +200,35 @@ public class AuthService {
         return ResponseEntity.ok(authResponse);                                                
     }
 
-    public ResponseEntity<?> signout(RefreshTokenRequest refreshTokenRequest){
-        boolean checkValid = valid(refreshTokenRequest.getRefreshToken());
-
-        Optional<Token> token = tokenRepository.findByRefreshToken(refreshTokenRequest.getRefreshToken());
-        tokenRepository.delete(token.get());
-        ApiResponse apiResponse = ApiResponse.builder()
-                                                .check(true)
-                                                .information(Message.builder()
-                                                                    .message("success logout")
-                                                                    .build() )
-                                                .build();
-        return ResponseEntity.ok(apiResponse);                                                
+    // public ResponseEntity<?> signout(RefreshTokenRequest refreshTokenRequest){
+    public ResponseEntity<?> signout(Authentication authentication){
+        String userEmail = authentication.getName();
+        log.info("tokenrepository : {}", tokenRepository.findAll());
+        Token userToken = tokenRepository.findByUserEmail(userEmail).get();
+        
+        boolean checkValid = valid(userToken.getRefreshToken());
+        if(checkValid != false){
+            Optional<Token> token = tokenRepository.findByRefreshToken(userToken.getRefreshToken());
+            tokenRepository.delete(token.get());
+            ApiResponse apiResponse = ApiResponse.builder()
+                                                    .check(true)
+                                                    .information(Message.builder()
+                                                                        .message("success logout")
+                                                                        .build() )
+                                                    .build();
+            SecurityContextHolder.clearContext();
+            return ResponseEntity.ok(apiResponse);                                                
+        }
+        else{
+            ApiResponse apiResponse = ApiResponse.builder()
+                                                    .check(true)
+                                                    .information(Message.builder()
+                                                                        .message("failed logout")
+                                                                        .build() )
+                                                    .build();
+            return ResponseEntity.ok(apiResponse);
+        }
+        
     }
 
     private boolean valid(String refreshToken){

@@ -29,8 +29,8 @@ public class CustomSimpleUrlAuthenticationFailureHandler extends SimpleUrlAuthen
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException exception) throws IOException, ServletException {
         String targetUrl = CustomCookie.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
-        .map(Cookie::getValue)
-        .orElse(("/"));
+                                        .map(Cookie::getValue)
+                                        .orElse(("/"));
 
         targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("error", exception.getLocalizedMessage())

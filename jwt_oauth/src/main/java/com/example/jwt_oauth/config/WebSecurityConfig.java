@@ -70,9 +70,11 @@ public class WebSecurityConfig {
                 .permitAll()
                 
                 .loginPage("/auth/loginPage")
-                .defaultSuccessUrl("/auth/home",true)
-                .failureUrl("/auth/loginPage")
-                .loginProcessingUrl("/auth/signin")
+                // .defaultSuccessUrl("/auth/home",true)
+                // .failureUrl("/auth/loginPage")
+                // .loginProcessingUrl("/auth/signin")
+                .usernameParameter("email")
+                .passwordParameter("password")
                 .successHandler(new AuthenticationSuccessHandler() {
                     
                     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,

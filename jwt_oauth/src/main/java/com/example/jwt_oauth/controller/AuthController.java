@@ -1,5 +1,9 @@
 package com.example.jwt_oauth.controller;
 
+import java.lang.ProcessBuilder.Redirect;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -57,8 +61,9 @@ public class AuthController {
 
     @PostMapping(value = "/signin")
     // public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest signInRequest) {
-    public ResponseEntity<?> signin(@RequestBody SignInRequest signInRequest) {
-        return authService.signin(signInRequest);
+    public String signin(SignInRequest signInRequest) {
+        authService.signin(signInRequest);
+        return "redirect:/auth/main";
     }
 
     
@@ -70,8 +75,11 @@ public class AuthController {
 
     @PostMapping(value = "/signup")
     // public ResponseEntity<?> signup(@Valid @RequestBody SignUpRequest signUpRequest) {
-    public String signup(SignUpRequest signUpRequest) {
-        authService.signup(signUpRequest);
+    public String signup(SignUpRequest signUpRequest, HttpServletResponse response) {
+        authService.signup(signUpRequest, response);
+        if(response.getStatus()>=300 || response.getStatus()<200){
+            return "redirect:/auth/customSignup";
+        }
         //회원가입후 redirect 하기위해 String으로 redirect
         return "redirect:/auth/loginPage"; 
     }
@@ -84,13 +92,23 @@ public class AuthController {
         return authService.refresh(tokenRefreshRequest);
     }
 
+    //일단 get으로 logout 할수 있게 만들어놓음.
+    @GetMapping(value="/signout")
+    public String logout(HttpServletRequest request, HttpServletResponse response){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication != null){
+            authService.signout(authentication);
+        }
+        return "redirect:/auth/home";
+    }
 
     @PostMapping(value="/signout")
     // public ResponseEntity<?> signout(@CurrentUser UserPrincipal userPrincipal, 
     //                                     @Valid @RequestBody RefreshTokenRequest tokenRefreshRequest) {
-    public ResponseEntity<?> signout(@CurrentUser UserPrincipal userPrincipal, 
-                                        RefreshTokenRequest tokenRefreshRequest) {
-        return authService.signout(tokenRefreshRequest);
+    public String signout(Authentication authentication) {
+        authService.signout(authentication);
+        return "redirect:/auth/home";
     }
 
     @GetMapping(value = "/loginPage")
@@ -122,8 +140,9 @@ public class AuthController {
 
     @GetMapping(value = "/authtest")
     public void authTest(){
-        // System.out.println(SecurityContextHolder.getContext().getAuthentication());
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(  auth.getPrincipal() + " " + auth.getCredentials() + " " + auth.getAuthorities() + " " + auth.getName());
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserPrincipal userPrincipal = (UserPrincipal)authentication;
+        System.out.println(userPrincipal.getName() + " " + userPrincipal.getUsername() + " " + userPrincipal.getAuthorities() + " " + userPrincipal.getPassword());
+        System.out.println(userPrincipal.toString());
     }
 }

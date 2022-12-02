@@ -15,16 +15,20 @@
 		<!-- 스프링 시큐리티가 제공하는 Principal 객체는 담겨있는것이
 		     아이디, 패스워드, 권한 3가지만 담겨있다 만약 다른 정보들도 같이담고싶으면 개인적으로 커스텀 마이징해야한다! -->
 			<h2><span sec:authentication="Principal.username"></span>님 환영합니다!</h2>
-			<h2><span sec:authentication="principal"></span>님 환영합니다!</h2>
-			<button onclick="location.href='/member/logout'">로그아웃</button>
+			<h2><span sec:authentication="Principal.authorities"></span>님 환영합니다!</h2>
+			<form th:action="@{/auth/signout}" class="form-group" method="post">
+				<!-- <button onclick="location.href='/auth/signout'">로그아웃</button> -->
+				<button class="btn" type="submit">로그아웃</button>
+			</form>
+				
 		</div>
 	</th:block>
 	<!-- 권한이 없는 사용자 일시 -->
 	<th:block sec:authorize="isAnonymous()">
 		<div text-align="right">
 			<h3>로그인이 필요한 서비스입니다.</h3>
-			<button onclick="location.href='/member/login'">로그인</button>
-			<button>회원가입</button>
+			<button onclick="location.href='/auth/loginPage'">로그인</button>
+			<button onclick="location.href='/auth/customSignup'">회원가입</button>
 		</div>
 	</th:block>
 	<div text-align="left">
@@ -32,7 +36,7 @@
 		<button>메뉴보기</button>
 		
 		<!-- 아래까지가 회원이 볼수있는 메뉴 -->
-		<th:block sec:authorize="hasRole('MEMBER')">
+		<th:block sec:authorize="hasRole('USER')">
 			<button>주문하기</button>
 		</th:block>
 		

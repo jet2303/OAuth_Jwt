@@ -34,19 +34,47 @@
                     <input type="text" class="form-control" name="name" placeholder="이름" required="required">
                 </div>
                 <div class="form-group">
-                    <input type="radio" name="chk_info" value="ADMIN">Admin
-                    <input type="radio" name="chk_info" value="USER">User
+                    <input type="radio" name="role" value="ADMIN">Admin
+                    <input type="radio" name="role" value="USER">User   
                 </div>
                 
                 <!--<div th:if="${param.error}" class="form-group">
                     <span th:text="${session[SPRING_SECURITY_LAST_EXCEPTION]}"
                           class="alert alert-danger">잘못된 아이디나 암호입니다</span>
                 </div>-->
-                <button type="submit" class="btn btn-lg btn-primary btn-block">회원가입</button>
+                <button id="submit" type="submit" class="btn btn-lg btn-primary btn-block">회원가입</button>
 <!--                <button type="submit" onclick="formLogin()" id="formbtn" class="btn btn-lg btn-primary btn-block">로그인</button>-->
             </form>
         </div>
     </div>
 </div>
+<script type="text/javascript" th:inline="javascript">
+    // document.addEventListener('DOMContentLoaded', () => {
+
+    //   const radios = document.querySelectorAll('input[type=radio][name=role]')
+    //   radios.forEach((radio)=> {
+    //     radio.addEventListener('change', (event) => {
+    //       radioResult.textContent = event.currentTarget.value
+    //     })
+    //   })
+    // })
+    document.getElementById('submit').onclick=function(){
+        var selected = false;
+        var size = document.getElementsByName('role').length;
+        for(var i=0; i<size; i++){
+            if(document.getElementsByName('role')[i].checked == true){
+                selected = true;
+            }
+        }
+        
+        if(!selected){
+            alert('please checked role');
+            history.go(-3);
+        }
+        
+    }
+
+</script>
+
 </body>
 </html>

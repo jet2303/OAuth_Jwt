@@ -12,6 +12,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.example.jwt_oauth.domain.user.User;
 
+import lombok.ToString;
+
+@ToString
 public class UserPrincipal implements OAuth2User, UserDetails{
 
     private Long id;
