@@ -67,7 +67,7 @@ public class AuthController {
     // public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest signInRequest) {
     public String signin(SignInRequest signInRequest, HttpServletResponse response) {
         authService.signin(signInRequest, response);
-        
+        System.out.println("123");
         return "redirect:/auth/main";
     }
 
