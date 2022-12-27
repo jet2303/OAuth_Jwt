@@ -7,6 +7,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -20,9 +23,10 @@ import lombok.RequiredArgsConstructor;
 import static com.example.jwt_oauth.repository.auth.CustomAuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
 
 @RequiredArgsConstructor
-@Component
+@Configuration
+// @Component
 public class CustomSimpleUrlAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler{
-    
+
     private final CustomAuthorizationRequestRepository customAuthorizationRequestRepository;
 
     @Override
@@ -38,7 +42,10 @@ public class CustomSimpleUrlAuthenticationFailureHandler extends SimpleUrlAuthen
 
         customAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
 
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        // getRedirectStrategy().sendRedirect(request, response, targetUrl);
+
+        setDefaultFailureUrl("/auth/loginPage?error=");
+        super.onAuthenticationFailure(request, response, exception);
     }
     
 }

@@ -2,6 +2,7 @@ package com.example.jwt_oauth.service.user.auth;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -105,14 +107,34 @@ public class AuthService {
         );
     }
 
-    public ResponseEntity<AuthResponse> signin(SignInRequest signInRequest){
+    public ResponseEntity<AuthResponse> signin(SignInRequest signInRequest, HttpServletResponse response){
 
         // log.info("{}", passwordEncoder.matches(signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword() ) );
         // log.info("{}, {}", signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword());
 
+        //password 안맞는 경우 값이 return 되어 다음에 로그인 시도시 패스워드에 추가되어 request 되는 경우 수정할것.
+        // try{
+        //     Authentication authentication = authenticationManager.authenticate(
+        //     new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword())
+        // );
+        // }catch(BadCredentialsException e){
+        //     e.printStackTrace();
+        // }
+        
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword())
         );
+        if(!authentication.isAuthenticated()){
+            response.setContentType("text/html; charset=euc-kr");
+            
+            try{
+                PrintWriter out = response.getWriter();
+                out.println("<script>alert('" + "등록되지않은 계정입니다." + "'); history.go(-1);</script>");
+                out.flush();
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         TokenMapping tokenMapping = customTokenProviderService.createToken(authentication);
@@ -123,7 +145,8 @@ public class AuthService {
         tokenRepository.save(token);
         AuthResponse authResponse = AuthResponse.builder().accessToken(tokenMapping.getAccessToken()).refreshToken(token.getRefreshToken()).build();
         
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(authResponse);    
+
     }
 
     
@@ -140,7 +163,18 @@ public class AuthService {
             }catch(Exception e){
                 e.printStackTrace();
             }
+        }
+        if(signUpRequest.getRole()==null){
+            response.setContentType("text/html; charset=euc-kr");
+            try{
+                PrintWriter out = response.getWriter();
+                out.println("<script>alert('" + "권한을 체크하여주세요." + "'); history.go(-1);</script>");
+                out.flush();
 
+                
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }
 
         User user = User.builder()
@@ -162,7 +196,10 @@ public class AuthService {
                             .buildAndExpand()
                             .toUri();
         
-        log.info("{}",userRepository.findAll());
+        List<User> users = userRepository.findAll();
+        for (User listuser : users) {
+            log.info("{}", listuser);
+        }
         
         ApiResponse apiResponse = ApiResponse.builder()
                                                 .check(true)

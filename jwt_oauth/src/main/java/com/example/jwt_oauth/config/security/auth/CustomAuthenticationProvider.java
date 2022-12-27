@@ -26,8 +26,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider{
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
+        if(userDetails==null){
+            throw new BadCredentialsException("등록되지 않은 사용자.");
+        }
         if(!passwordEncoder.matches(password, userDetails.getPassword())){
-            throw new BadCredentialsException("password 오류");
+            throw new BadCredentialsException("password 오류.");
         }
 
         UsernamePasswordAuthenticationToken authenticationToken 

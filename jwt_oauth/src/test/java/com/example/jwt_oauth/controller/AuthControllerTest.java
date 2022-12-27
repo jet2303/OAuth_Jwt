@@ -15,6 +15,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -26,6 +27,7 @@ import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyPr
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +41,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 import com.example.jwt_oauth.config.security.token.UserPrincipal;
+import com.example.jwt_oauth.domain.user.Role;
 import com.example.jwt_oauth.domain.user.User;
 import com.example.jwt_oauth.payload.request.auth.ChangePasswordRequest;
 import com.example.jwt_oauth.payload.request.auth.RefreshTokenRequest;
@@ -75,6 +78,104 @@ public class AuthControllerTest {
                                     .alwaysDo(MockMvcResultHandlers.log())
                                     .build();
     }
+
+    @BeforeEach
+    public void userSetUp(){
+        
+    }
+
+    @Test
+    @Order(1)
+    void testSignup() throws Exception{
+
+        String email = "test@naver.com";
+        String password = "password";
+        String name = "test";
+        String role = "ADMIN";
+        
+        
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.post("/auth/signup")
+                                                        .param("email", email)
+                                                        .param("password", password)
+                                                        .param("name", name)
+                                                        .param("role", role)
+                                                        .contentType(MediaType.APPLICATION_JSON_VALUE) )
+                                                .andDo(MockMvcResultHandlers.print())
+                                                .andReturn();
+             
+           
+        // log.info("{}", mvcResult.getResponse().getHeader("Location"));
+        
+        // assertEquals(mvcResult.getResponse().getHeader("Location"), "/auth/loginPage");
+        assertEquals(mvcResult.getResponse().getStatus(), 302);
+        assertEquals(mvcResult.getResponse().getRedirectedUrl(),"/auth/loginPage");
+    }
+
+    
+    @Test
+    @Order(2)
+    void testSignin() throws Exception{
+
+        SignInRequest signInRequest = new SignInRequest();
+        signInRequest.setEmail("test@naver.com");
+        signInRequest.setPassword("password");
+
+        String email = "test@naver.com";
+        String password = "password";
+
+        String content = objectMapper.writeValueAsString(signInRequest);
+        
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.post("/auth/signin")
+                                                // .content(content)
+                                                .param("email", email)
+                                                .param("password", password)
+                                                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                                    .andDo(MockMvcResultHandlers.print())
+                                    .andReturn();
+
+        assertEquals(mvcResult.getResponse().getRedirectedUrl(), "/auth/main");
+
+        
+    }
+
+
+
+    @Test
+    @Order(3)
+    void testWhoAmI() throws Exception{
+        JSONObject token = signin();
+        String accessToken = token.get("accessToken").toString();
+
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/auth/")
+                                                                                .header("Authorization", String.format("Bearer %s", accessToken))
+                                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                                .accept(MediaType.APPLICATION_JSON)
+                                            ).andDo(MockMvcResultHandlers.print());
+
+        JSONObject jsonObject = asStringToJson(resultActions.andReturn().getResponse().getContentAsString());
+        log.info("jsonObject={}",jsonObject);
+
+    }
+
+    @Test
+    // @Disabled
+    @Order(4)
+    void testSignout() throws Exception{
+        JSONObject token = signin();
+        String accessToken = token.get("refreshToken").toString();
+        RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(accessToken);
+        
+        SignInRequest signInRequest = new SignInRequest();
+        signInRequest.setEmail("test@naver.com");
+        signInRequest.setPassword("password");
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/auth/signout")
+                                                .content(objectMapper.writeValueAsString(signInRequest))
+                                                .content(objectMapper.writeValueAsString(refreshTokenRequest))
+                                                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andDo(MockMvcResultHandlers.print());
+    }
+
 
     @Test
     @Order(8)
@@ -199,81 +300,6 @@ public class AuthControllerTest {
     }
 
     @Test
-    @Order(2)
-    void testSignin() throws Exception{
-        SignInRequest signInRequest = new SignInRequest();
-        signInRequest.setEmail("test@naver.com");
-        signInRequest.setPassword("password");
-
-        String content = objectMapper.writeValueAsString(signInRequest);
-        
-        mockMvc.perform(MockMvcRequestBuilders.post("/auth/signin")
-                                                .content(content)
-                                                .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andDo(MockMvcResultHandlers.print()); 
-
-        
-    }
-
-    @Test
-    // @Disabled
-    @Order(4)
-    void testSignout() throws Exception{
-        JSONObject token = signin();
-        String accessToken = token.get("refreshToken").toString();
-        RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(accessToken);
-        
-        SignInRequest signInRequest = new SignInRequest();
-        signInRequest.setEmail("test@naver.com");
-        signInRequest.setPassword("password");
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/auth/signout")
-                                                .content(objectMapper.writeValueAsString(signInRequest))
-                                                .content(objectMapper.writeValueAsString(refreshTokenRequest))
-                                                .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andDo(MockMvcResultHandlers.print());
-    }
-
-    @Test
-    @Order(1)
-    void testSignup() throws Exception{
-        SignUpRequest signUpRequest = new SignUpRequest();
-        signUpRequest.setEmail("test@naver.com");
-        signUpRequest.setPassword("password");
-        signUpRequest.setName("test");
-
-        String content = objectMapper.writeValueAsString(signUpRequest);
-
-
-        MvcResult mvcResult =
-        mockMvc.perform(MockMvcRequestBuilders.post("/auth/signup")
-                                                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                                                .content(content) )
-                .andDo(MockMvcResultHandlers.print())
-                .andReturn();
-           
-        log.info("{}", mvcResult.getResponse().getContentAsString());
-        
-    }
-
-    @Test
-    @Order(3)
-    void testWhoAmI() throws Exception{
-        JSONObject token = signin();
-        String accessToken = token.get("accessToken").toString();
-
-        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/auth/")
-                                                                                .header("Authorization", String.format("Bearer %s", accessToken))
-                                                                                .contentType(MediaType.APPLICATION_JSON)
-                                                                                .accept(MediaType.APPLICATION_JSON)
-                                            ).andDo(MockMvcResultHandlers.print());
-
-        JSONObject jsonObject = asStringToJson(resultActions.andReturn().getResponse().getContentAsString());
-        log.info("jsonObject={}",jsonObject);
-
-    }
-
-    @Test
     // @Disabled
     void testLoginPage() throws Exception{
         mockMvc.perform(MockMvcRequestBuilders.get("/auth/loginPage")
@@ -287,10 +313,16 @@ public class AuthControllerTest {
         signInRequest.setEmail("test@naver.com");
         signInRequest.setPassword("password");
 
+        String email = "test@naver.com";
+        String password = "password";
+
         ResultActions actions = mockMvc.perform(MockMvcRequestBuilders.post("/auth/signin")
-                                                                        .content(asJsonToString(signInRequest))
+                                                                        .content(objectMapper.writeValueAsString(signInRequest))
+                                                                        // .content(asJsonToString(signInRequest))
+                                                                        // .param("email",email)
+                                                                        // .param("password",password)
                                                                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                                                                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                                                                        // .accept(MediaType.APPLICATION_JSON_VALUE)
                                                                         )
                                         .andDo(MockMvcResultHandlers.print());
         log.info("result = {}", actions.andReturn().getResponse().getContentAsString());

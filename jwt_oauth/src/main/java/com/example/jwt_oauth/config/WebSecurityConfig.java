@@ -31,6 +31,8 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import com.example.jwt_oauth.config.security.handler.CustomSimpleUrlAuthenticationFailureHandler;
 import com.example.jwt_oauth.config.security.handler.CustomSimpleUrlAuthenticationSuccessHandler;
+import com.example.jwt_oauth.config.security.handler.loginhandler.CustomUrlAuthenticationFailureHandler;
+import com.example.jwt_oauth.config.security.handler.loginhandler.CustomUrlAuthenticationSuccessHandler;
 import com.example.jwt_oauth.config.security.token.CustomOncePerRequestFilter;
 import com.example.jwt_oauth.repository.auth.CustomAuthorizationRequestRepository;
 import com.example.jwt_oauth.service.user.auth.CustomDefaultOAuth2UserService;
@@ -43,11 +45,16 @@ import lombok.RequiredArgsConstructor;
 public class WebSecurityConfig {
 
     private final CustomSimpleUrlAuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    // private final AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final CustomSimpleUrlAuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
-    private final CustomAuthorizationRequestRepository customAuthorizationRequestRepository;
-
+    // private final AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    
+    private final CustomAuthorizationRequestRepository customAuthorizationRequestRepository;    
     private final CustomDefaultOAuth2UserService customOAuth2UserService;
     // private final CustomOncePerRequestFilter customOncePerRequestFilter;
+
+    private final CustomUrlAuthenticationSuccessHandler customUrlAuthenticationSuccessHandler;
+    private final CustomUrlAuthenticationFailureHandler customUrlAuthenticationFailureHandler;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -70,26 +77,28 @@ public class WebSecurityConfig {
                 .permitAll()
                 
                 .loginPage("/auth/loginPage")
-                // .defaultSuccessUrl("/auth/home",true)
-                // .failureUrl("/auth/loginPage")
-                // .loginProcessingUrl("/auth/signin")
+                
                 .usernameParameter("email")
                 .passwordParameter("password")
-                .successHandler(new AuthenticationSuccessHandler() {
+                .successHandler(customUrlAuthenticationSuccessHandler)
+                // .successHandler(new AuthenticationSuccessHandler() {
                     
-                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                    Authentication authentication) throws IOException, ServletException{
-                        System.out.println("authentication : " + authentication.getName());
-                        response.sendRedirect("/auth/main");
-                    }
-                })
-                .failureHandler(new AuthenticationFailureHandler() {
-                    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-			                                            AuthenticationException exception) throws IOException, ServletException{
-                        System.out.println("exception : " + exception.getMessage());
-                        response.sendRedirect("/auth/home");
-                    }
-                })
+                //     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                //     Authentication authentication) throws IOException, ServletException{
+                //         System.out.println("authentication : " + authentication.getName());
+                //         response.sendRedirect("/auth/main");
+                //     }
+                // })
+                .failureHandler(authenticationFailureHandler())
+                // .failureHandler(customUrlAuthenticationFailureHandler)
+
+                // .failureHandler(new AuthenticationFailureHandler() {
+                //     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+			    //                                         AuthenticationException exception) throws IOException, ServletException{
+                //         System.out.println("exception : " + exception.getMessage());
+                //         response.sendRedirect("/auth/home");
+                //     }
+                // })
                 .and()                
             .logout()
                 .permitAll()
@@ -138,6 +147,15 @@ public class WebSecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    @Bean
+    public CustomSimpleUrlAuthenticationFailureHandler loginFailureHandler(){
+        return new CustomSimpleUrlAuthenticationFailureHandler(customAuthorizationRequestRepository);
+    }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler(){
+        return new CustomUrlAuthenticationFailureHandler();
+    }
     
     
 }

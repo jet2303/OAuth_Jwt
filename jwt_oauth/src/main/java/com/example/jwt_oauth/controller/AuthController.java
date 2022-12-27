@@ -25,6 +25,7 @@ import com.example.jwt_oauth.payload.request.auth.ChangePasswordRequest;
 import com.example.jwt_oauth.payload.request.auth.RefreshTokenRequest;
 import com.example.jwt_oauth.payload.request.auth.SignInRequest;
 import com.example.jwt_oauth.payload.request.auth.SignUpRequest;
+import com.example.jwt_oauth.payload.response.AuthResponse;
 import com.example.jwt_oauth.service.user.auth.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -42,29 +43,34 @@ public class AuthController {
 //  파라미터의 @Valid @RequestBody는 Thymeleaf 템플릿 엔진이 보내는 Request의 content Type과 호환되지않아 삭제함.
 //     
     @GetMapping(value = "/")
-    public ResponseEntity<?> whoAmI(@CurrentUser UserPrincipal userPrincipal) {
+    // public ResponseEntity<?> whoAmI(@CurrentUser UserPrincipal userPrincipal) {
+    public ResponseEntity<?> whoAmI(UserPrincipal userPrincipal) {
         return authService.whoAmI(userPrincipal);
     }
 
     
     @DeleteMapping(value = "/")
-    public ResponseEntity<?> delete(@CurrentUser UserPrincipal userPrincipal){
+    // public ResponseEntity<?> delete(@CurrentUser UserPrincipal userPrincipal){
+    public ResponseEntity<?> delete(UserPrincipal userPrincipal){
         return authService.delete(userPrincipal);
     }
 
 
     @PutMapping(value = "/")
-    public ResponseEntity<?> modify(@CurrentUser UserPrincipal userPrincipal, 
-                                    @Valid @RequestBody ChangePasswordRequest passwordChangeRequest){
+    // public ResponseEntity<?> modify(@CurrentUser UserPrincipal userPrincipal, 
+    //                                 @Valid @RequestBody ChangePasswordRequest passwordChangeRequest){
+    public ResponseEntity<?> modify(UserPrincipal userPrincipal, ChangePasswordRequest passwordChangeRequest){
         return authService.modify(userPrincipal, passwordChangeRequest);
     }
 
     @PostMapping(value = "/signin")
     // public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest signInRequest) {
-    public String signin(SignInRequest signInRequest) {
-        authService.signin(signInRequest);
+    public String signin(SignInRequest signInRequest, HttpServletResponse response) {
+        authService.signin(signInRequest, response);
+        
         return "redirect:/auth/main";
     }
+
 
     
     // @PostMapping(value = "/signup")
@@ -75,7 +81,8 @@ public class AuthController {
 
     @PostMapping(value = "/signup")
     // public ResponseEntity<?> signup(@Valid @RequestBody SignUpRequest signUpRequest) {
-    public String signup(SignUpRequest signUpRequest, HttpServletResponse response) {
+    public String signup(SignUpRequest signUpRequest, HttpServletResponse response, HttpServletRequest request) {
+
         authService.signup(signUpRequest, response);
         if(response.getStatus()>=300 || response.getStatus()<200){
             return "redirect:/auth/customSignup";
@@ -128,10 +135,10 @@ public class AuthController {
         return "customSignup";
     }
 
-    @GetMapping(value="/signup")
-    public String signup(){
-        return "signup";
-    }
+    // @GetMapping(value="/signup")
+    // public String signup(){
+    //     return "signup";
+    // }
 
     @GetMapping(value = "/main")
     public String main(){
@@ -144,5 +151,10 @@ public class AuthController {
         UserPrincipal userPrincipal = (UserPrincipal)authentication;
         System.out.println(userPrincipal.getName() + " " + userPrincipal.getUsername() + " " + userPrincipal.getAuthorities() + " " + userPrincipal.getPassword());
         System.out.println(userPrincipal.toString());
+    }
+
+    @GetMapping(value = "/menutest")
+    public String menutest(){
+        return "menu/index";
     }
 }
