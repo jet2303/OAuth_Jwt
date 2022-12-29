@@ -43,8 +43,8 @@ public class AuthController {
 //  파라미터의 @Valid @RequestBody는 Thymeleaf 템플릿 엔진이 보내는 Request의 content Type과 호환되지않아 삭제함.
 //     
     @GetMapping(value = "/")
-    // public ResponseEntity<?> whoAmI(@CurrentUser UserPrincipal userPrincipal) {
-    public ResponseEntity<?> whoAmI(UserPrincipal userPrincipal) {
+    public ResponseEntity<?> whoAmI(@CurrentUser UserPrincipal userPrincipal) {
+    // public ResponseEntity<?> whoAmI(UserPrincipal userPrincipal) {
         return authService.whoAmI(userPrincipal);
     }
 
@@ -65,13 +65,9 @@ public class AuthController {
 
     @PostMapping(value = "/signin")
     // public ResponseEntity<?> signin(@Valid @RequestBody SignInRequest signInRequest) {
-    public String signin(SignInRequest signInRequest, HttpServletResponse response) {
-        authService.signin(signInRequest, response);
-        System.out.println("123");
-        return "redirect:/auth/main";
+    public ResponseEntity<?> signin(SignInRequest signInRequest, HttpServletResponse response) {
+        return authService.signin(signInRequest, response);
     }
-
-
     
     // @PostMapping(value = "/signup")
     // // public ResponseEntity<?> signup(@Valid @RequestBody SignUpRequest signUpRequest) {
@@ -81,14 +77,14 @@ public class AuthController {
 
     @PostMapping(value = "/signup")
     // public ResponseEntity<?> signup(@Valid @RequestBody SignUpRequest signUpRequest) {
-    public String signup(SignUpRequest signUpRequest, HttpServletResponse response, HttpServletRequest request) {
+    public ResponseEntity<?> signup(SignUpRequest signUpRequest, HttpServletResponse response, HttpServletRequest request) {
 
-        authService.signup(signUpRequest, response);
-        if(response.getStatus()>=300 || response.getStatus()<200){
-            return "redirect:/auth/customSignup";
-        }
-        //회원가입후 redirect 하기위해 String으로 redirect
-        return "redirect:/auth/loginPage"; 
+        return authService.signup(signUpRequest, response);
+        // if(response.getStatus()>=300 || response.getStatus()<200){
+        //     return "redirect:/auth/customSignup";
+        // }
+        // //회원가입후 redirect 하기위해 String으로 redirect
+        // return "redirect:/auth/loginPage"; 
     }
     
 
@@ -118,43 +114,40 @@ public class AuthController {
         return "redirect:/auth/home";
     }
 
-    @GetMapping(value = "/loginPage")
-    public String loginPage(ModelAndView model){
-        model.addObject("SignInRequest", new SignInRequest());
-        return "login";
-    }
-
-    @GetMapping(value = "/home")
-    public String home(){
-        return "home";
-    }
-
-    @GetMapping(value="/customSignup")
-    public String customSignup(ModelAndView modelAndView){
-        modelAndView.addObject("SignUpRequest", new SignUpRequest());
-        return "customSignup";
-    }
-
-    // @GetMapping(value="/signup")
-    // public String signup(){
-    //     return "signup";
+    // @GetMapping(value = "/loginPage")
+    // public String loginPage(ModelAndView model){
+    //     model.addObject("SignInRequest", new SignInRequest());
+    //     return "login";
     // }
 
-    @GetMapping(value = "/main")
-    public String main(){
-        return "main";
-    }
+    // @GetMapping(value = "/home")
+    // public String home(){
+    //     return "home";
+    // }
 
-    @GetMapping(value = "/authtest")
-    public void authTest(){
-        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserPrincipal userPrincipal = (UserPrincipal)authentication;
-        System.out.println(userPrincipal.getName() + " " + userPrincipal.getUsername() + " " + userPrincipal.getAuthorities() + " " + userPrincipal.getPassword());
-        System.out.println(userPrincipal.toString());
-    }
+    // @GetMapping(value="/customSignup")
+    // public String customSignup(ModelAndView modelAndView){
+    //     modelAndView.addObject("SignUpRequest", new SignUpRequest());
+    //     return "customSignup";
+    // }
 
-    @GetMapping(value = "/menutest")
-    public String menutest(){
-        return "menu/index";
-    }
+   
+
+    // @GetMapping(value = "/main")
+    // public String main(){
+    //     return "main";
+    // }
+
+    // @GetMapping(value = "/authtest")
+    // public void authTest(){
+    //     Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    //     UserPrincipal userPrincipal = (UserPrincipal)authentication;
+    //     System.out.println(userPrincipal.getName() + " " + userPrincipal.getUsername() + " " + userPrincipal.getAuthorities() + " " + userPrincipal.getPassword());
+    //     System.out.println(userPrincipal.toString());
+    // }
+
+    // @GetMapping(value = "/menutest")
+    // public String menutest(){
+    //     return "menu/index";
+    // }
 }

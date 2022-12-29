@@ -143,9 +143,20 @@ public class AuthService {
                                 .refreshToken(tokenMapping.getRefreshToken())
                                 .build();
         tokenRepository.save(token);
-        AuthResponse authResponse = AuthResponse.builder().accessToken(tokenMapping.getAccessToken()).refreshToken(token.getRefreshToken()).build();
-        
-        return ResponseEntity.ok(authResponse);    
+        AuthResponse authResponse = AuthResponse.builder()
+                                                .accessToken(tokenMapping.getAccessToken())
+                                                .refreshToken(token.getRefreshToken())
+                                                .build();
+                                                
+        URI location = ServletUriComponentsBuilder
+                        .fromCurrentContextPath()
+                        .path("/main")
+                        // .buildAndExpand(user.getId())
+                        .buildAndExpand()
+                        .toUri();
+
+        return ResponseEntity.created(location).body(authResponse);
+        // return ResponseEntity.ok(authResponse);    
 
     }
 
@@ -191,7 +202,7 @@ public class AuthService {
         
         URI location = ServletUriComponentsBuilder
                             .fromCurrentContextPath()
-                            .path("/auth/loginPage")
+                            .path("/loginPage")
                             // .buildAndExpand(user.getId())
                             .buildAndExpand()
                             .toUri();

@@ -67,7 +67,7 @@ public class WebSecurityConfig {
         http.authorizeRequests()            
                 .antMatchers("/h2-console/**").permitAll()                    
                 .antMatchers("/auth/**").permitAll()
-                // .antMatchers("/auth/loginPage", "/auth/customSignup","/auth/signin", "/auth/signout","/auth/home").permitAll()
+                .antMatchers("/loginPage", "/customSignup","/signin", "/signout","/home", "/authtest").permitAll()
                 .anyRequest().authenticated()
                 .and()
             .headers()
@@ -76,7 +76,7 @@ public class WebSecurityConfig {
             .formLogin()
                 .permitAll()
                 
-                .loginPage("/auth/loginPage")
+                .loginPage("/loginPage")
                 
                 .usernameParameter("email")
                 .passwordParameter("password")
