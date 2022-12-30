@@ -51,7 +51,7 @@ public class AuthController {
     
     @DeleteMapping(value = "/")
     // public ResponseEntity<?> delete(@CurrentUser UserPrincipal userPrincipal){
-    public ResponseEntity<?> delete(UserPrincipal userPrincipal){
+    public ResponseEntity<?> delete(@CurrentUser UserPrincipal userPrincipal){
         return authService.delete(userPrincipal);
     }
 
@@ -59,7 +59,7 @@ public class AuthController {
     @PutMapping(value = "/")
     // public ResponseEntity<?> modify(@CurrentUser UserPrincipal userPrincipal, 
     //                                 @Valid @RequestBody ChangePasswordRequest passwordChangeRequest){
-    public ResponseEntity<?> modify(UserPrincipal userPrincipal, ChangePasswordRequest passwordChangeRequest){
+    public ResponseEntity<?> modify(@RequestBody ChangePasswordRequest passwordChangeRequest, @CurrentUser UserPrincipal userPrincipal){
         return authService.modify(userPrincipal, passwordChangeRequest);
     }
 
@@ -97,22 +97,30 @@ public class AuthController {
 
     //일단 get으로 logout 할수 있게 만들어놓음.
     @GetMapping(value="/signout")
-    public String logout(HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response
+                            ,@CurrentUser UserPrincipal userPrincipal){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if(authentication != null){
-            authService.signout(authentication);
+            return authService.signout(authentication);
         }
-        return "redirect:/auth/home";
+        return authService.signout(authentication);
+        
     }
 
-    @PostMapping(value="/signout")
-    // public ResponseEntity<?> signout(@CurrentUser UserPrincipal userPrincipal, 
-    //                                     @Valid @RequestBody RefreshTokenRequest tokenRefreshRequest) {
-    public String signout(Authentication authentication) {
-        authService.signout(authentication);
-        return "redirect:/auth/home";
-    }
+    // @PostMapping(value="/signout")
+    // // public ResponseEntity<?> signout(@CurrentUser UserPrincipal userPrincipal
+    // //                                     ,@Valid @RequestBody RefreshTokenRequest tokenRefreshRequest) {
+    // public String signout(Authentication authentication) {
+    //     authService.signout(authentication);
+    //     return "redirect:/auth/home";
+    // }
+
+    // @PostMapping(value = "/signout")
+    // public ResponseEntity<?> signout(@CurrentUser UserPrincipal userPrincipal
+    //                                 , Authentication authentication){
+    //     return authService.signout(authentication);   
+    // }
 
     // @GetMapping(value = "/loginPage")
     // public String loginPage(ModelAndView model){

@@ -157,34 +157,32 @@ public class AuthControllerTest {
         JSONObject jsonObject = asStringToJson(resultActions.andReturn().getResponse().getContentAsString());
         log.info("jsonObject={}",jsonObject);
 
-        assertEquals(resultActions.andReturn().getResponse().getStatus(), MockHttpServletResponse.SC_CREATED);
+        assertEquals(resultActions.andReturn().getResponse().getStatus(), MockHttpServletResponse.SC_OK);
         // assertEquals(resultActions.andReturn().getResponse()., null);
 
     }
 
     @Test
-    @Disabled
+    
     @Order(4)
     void testSignout() throws Exception{
         JSONObject token = signin();
-        String accessToken = token.get("refreshToken").toString();
-        RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(accessToken);
+        String accessToken = token.get("accessToken").toString();
         
-        SignInRequest signInRequest = new SignInRequest();
-        signInRequest.setEmail("test@naver.com");
-        signInRequest.setPassword("password");
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/auth/signout")
-                                                .content(objectMapper.writeValueAsString(signInRequest))
-                                                .content(objectMapper.writeValueAsString(refreshTokenRequest))
-                                                .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andDo(MockMvcResultHandlers.print());
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/auth/signout")
+                                                                .header("Authorization", String.format("Bearer %s", accessToken))
+                                                                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                                                    .andDo(MockMvcResultHandlers.print());
+        String content = resultActions.andReturn().getResponse().getContentAsString();    
+        String authResponse = asStringToJson(content).get("information").toString();
+        String message = asStringToJson(authResponse).get("message").toString(); 
+        assertEquals(message, "success logout");
     }
 
 
     @Test
     @Order(8)
-    @Disabled
+    // @Disabled
     void testDelete() throws Exception{
         JSONObject jsonObject = signin();
         String authorization = jsonObject.get("accessToken").toString();
@@ -201,7 +199,6 @@ public class AuthControllerTest {
     @Test
     @DisplayName(value = "PW 정상 수정")
     @Order(5)
-    @Disabled
     void testModify1() throws Exception{
         JSONObject jsonObject = signin();
         String authorization = jsonObject.get("accessToken").toString();
@@ -211,12 +208,12 @@ public class AuthControllerTest {
         changePasswordRequest.setNewPassword("password1");
         changePasswordRequest.setChkNewPassword("password1");
         
-
+        String content = objectMapper.writeValueAsString(changePasswordRequest);
         //UserPrincipal 은 Header의 Authorization 필드를 보고 값을 받아줌.
         
-            ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put("/auth/")
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put("/auth/")
                                                         .header("Authorization", String.format("Bearer %s", authorization))
-                                                        .content(objectMapper.writeValueAsString(changePasswordRequest) )
+                                                        .content(content)
                                                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                                                 .andDo(MockMvcResultHandlers.print());
         String result = resultActions.andReturn().getResponse().getContentAsString();
@@ -231,7 +228,6 @@ public class AuthControllerTest {
     @Test
     @DisplayName(value = "PW 오타")
     @Order(6)
-    @Disabled
     void testModify2() throws Exception{
         JSONObject jsonObject = signin();
         String authorization = jsonObject.get("accessToken").toString();
@@ -261,7 +257,7 @@ public class AuthControllerTest {
     @Test
     @DisplayName(value = "PW 확인 오타")
     @Order(7)
-    @Disabled
+    
     void testModify3() throws Exception{
         JSONObject jsonObject = signin();
         String authorization = jsonObject.get("accessToken").toString();
@@ -289,7 +285,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    @Order(5)
+    @Order(9)
     @Disabled
     void testRefresh() throws Exception{
         JSONObject token = signin();

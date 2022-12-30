@@ -251,7 +251,7 @@ public class AuthService {
     // public ResponseEntity<?> signout(RefreshTokenRequest refreshTokenRequest){
     public ResponseEntity<?> signout(Authentication authentication){
         String userEmail = authentication.getName();
-        log.info("tokenrepository : {}", tokenRepository.findAll());
+        
         Token userToken = tokenRepository.findByUserEmail(userEmail).get();
         
         boolean checkValid = valid(userToken.getRefreshToken());
