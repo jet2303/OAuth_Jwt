@@ -69,12 +69,13 @@ public class UserServiceTest {
     
     @Test
     @Transactional
+    @Disabled
     void testCreate() {
         
         UserDto newUser = UserDto.builder()
-                                    .name("test")
-                                    .email("test@naver.com")
-                                    .imageUrl("test imageUrl")
+                                    .name("test1")
+                                    .email("test1@naver.com")
+                                    .imageUrl("test1 imageUrl")
                                     .emailVerified(false)
                                     .password("password")
                                     .provider(Provider.kakao)

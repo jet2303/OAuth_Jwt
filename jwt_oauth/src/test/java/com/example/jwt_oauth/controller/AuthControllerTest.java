@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 
 import org.json.simple.JSONObject;
-// import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
@@ -109,8 +108,8 @@ public class AuthControllerTest {
         
         // assertEquals(mvcResult.getResponse().getHeader("Location"), "/auth/loginPage");
         // assertEquals(mvcResult.getResponse().getStatus(), 302);
-        assertEquals(mvcResult.getResponse().getRedirectedUrl(),"http://localhost/loginPage");
-        assertEquals(mvcResult.getResponse().getStatus(), MockHttpServletResponse.SC_CREATED);
+        assertEquals(mvcResult.getResponse().getRedirectedUrl(),"/loginPage");
+        assertEquals(mvcResult.getResponse().getStatus(), MockHttpServletResponse.SC_MOVED_TEMPORARILY );
     }
 
     
@@ -135,8 +134,8 @@ public class AuthControllerTest {
                                     .andDo(MockMvcResultHandlers.print())
                                     .andReturn();
 
-        assertEquals(mvcResult.getResponse().getRedirectedUrl(), "http://localhost/main");
-        assertEquals(mvcResult.getResponse().getStatus(), MockHttpServletResponse.SC_CREATED);
+        assertEquals(mvcResult.getResponse().getRedirectedUrl(), "/main");
+        assertEquals(mvcResult.getResponse().getStatus(), MockHttpServletResponse.SC_MOVED_TEMPORARILY );
         
     }
 
@@ -239,8 +238,7 @@ public class AuthControllerTest {
         
 
         //UserPrincipal 은 Header의 Authorization 필드를 보고 값을 받아줌.
-        
-            ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put("/auth/")
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put("/auth/")
                                                         .header("Authorization", String.format("Bearer %s", authorization))
                                                         .content(objectMapper.writeValueAsString(changePasswordRequest) )
                                                         .contentType(MediaType.APPLICATION_JSON_VALUE))
@@ -315,23 +313,16 @@ public class AuthControllerTest {
 
 
     private JSONObject signin() throws Exception{
-        SignInRequest signInRequest = new SignInRequest();
-        signInRequest.setEmail("test@naver.com");
-        signInRequest.setPassword("password");
-
         String email = "test@naver.com";
         String password = "password";
 
         ResultActions actions = mockMvc.perform(MockMvcRequestBuilders.post("/auth/signin")
-                                                                        // .content(objectMapper.writeValueAsString(signInRequest))
-                                                                        // .content(asJsonToString(signInRequest))
                                                                         .param("email",email)
                                                                         .param("password",password)
                                                                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                                                                        // .accept(MediaType.APPLICATION_JSON_VALUE)
                                                                         )
                                         .andDo(MockMvcResultHandlers.print());
-        log.info("result = {}", actions.andReturn().getResponse().getContentAsString());
+        // log.info("result = {}", actions.andReturn().getResponse().getContentAsString());
         JSONObject jsonObject = asStringToJson(actions.andReturn().getResponse().getContentAsString());
         return jsonObject;
     }

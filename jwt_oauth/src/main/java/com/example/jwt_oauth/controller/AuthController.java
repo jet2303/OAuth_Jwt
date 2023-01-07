@@ -102,9 +102,9 @@ public class AuthController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if(authentication != null){
-            return authService.signout(authentication);
+            return authService.signout(authentication,response);
         }
-        return authService.signout(authentication);
+        return authService.signout(authentication, response);
         
     }
 

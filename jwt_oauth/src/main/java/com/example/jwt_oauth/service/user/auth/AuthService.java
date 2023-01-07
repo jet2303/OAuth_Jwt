@@ -155,6 +155,12 @@ public class AuthService {
                         .buildAndExpand()
                         .toUri();
 
+        try{
+            response.sendRedirect("/main");
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        
         return ResponseEntity.created(location).body(authResponse);
         // return ResponseEntity.ok(authResponse);    
 
@@ -217,6 +223,11 @@ public class AuthService {
                                                 .information(Message.builder().message("signup success").build())
                                                 .build();       
         
+        try{
+                response.sendRedirect("/loginPage");
+            }catch(IOException e){
+                e.printStackTrace();
+            }
         return ResponseEntity.created(location).body(apiResponse);  
 
     }
@@ -249,12 +260,18 @@ public class AuthService {
     }
 
     // public ResponseEntity<?> signout(RefreshTokenRequest refreshTokenRequest){
-    public ResponseEntity<?> signout(Authentication authentication){
+    public ResponseEntity<?> signout(Authentication authentication, HttpServletResponse response){
         String userEmail = authentication.getName();
         
         Token userToken = tokenRepository.findByUserEmail(userEmail).get();
         
         boolean checkValid = valid(userToken.getRefreshToken());
+        try{
+            response.sendRedirect("/loginPage");
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        
         if(checkValid != false){
             Optional<Token> token = tokenRepository.findByRefreshToken(userToken.getRefreshToken());
             tokenRepository.delete(token.get());

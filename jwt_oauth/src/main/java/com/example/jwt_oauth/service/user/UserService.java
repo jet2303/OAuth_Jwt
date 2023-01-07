@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import com.example.jwt_oauth.domain.dto.UserDto;
 import com.example.jwt_oauth.domain.user.User;
 import com.example.jwt_oauth.domain.user.UserEnum;
+import com.example.jwt_oauth.payload.response.ApiResponse;
+import com.example.jwt_oauth.payload.response.Message;
 import com.example.jwt_oauth.repository.user.UserRepository;
 import com.example.jwt_oauth.service.user.auth.AuthService;
 
@@ -56,6 +58,17 @@ public class UserService {
                             .role(userDto.getRole())
                             .build();   
         
+        if(userRepository.existsByEmail(user.getEmail())){
+            // return ResponseEntity.ok(ApiResponse.builder()
+            //                                     .check(false)
+            //                                     .information(Message.builder()
+            //                                                             .message("중복된 계정이 존재")
+            //                                                             .build()
+            //                                     )                                   
+            //                                     .build());
+            return ResponseEntity.ok(UserDto.builder().build());
+        } 
+
         User newUser = userRepository.save(user);
         if(newUser==null){
             //Error

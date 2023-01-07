@@ -1,21 +1,33 @@
 package com.example.jwt_oauth.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.example.jwt_oauth.config.security.token.CurrentUser;
 import com.example.jwt_oauth.config.security.token.UserPrincipal;
+import com.example.jwt_oauth.domain.dto.BoardInfoDto;
 import com.example.jwt_oauth.payload.request.auth.SignInRequest;
 import com.example.jwt_oauth.payload.request.auth.SignUpRequest;
+import com.example.jwt_oauth.payload.response.ApiResponse;
+import com.example.jwt_oauth.service.board.BoardService;
 import com.example.jwt_oauth.service.user.auth.AuthService;
 
 import lombok.RequiredArgsConstructor;
 
 @Controller
-// @RequiredArgsConstructor
+@RequiredArgsConstructor
 public class PageController {
+
+    private final BoardService boardService;
 
     @GetMapping(value = "/loginPage")
     public String loginPage(ModelAndView model){
@@ -50,5 +62,16 @@ public class PageController {
     @GetMapping(value = "/menutest")
     public String menutest(){
         return "menu/index";
+    }
+
+    @GetMapping(value = "/list")
+    public ModelAndView boardlist(@CurrentUser UserPrincipal userPrincipal){
+        return new ModelAndView("/page/list")
+                    .addObject("boardList", boardService.getList(userPrincipal)); 
+    }
+
+    @PostMapping(value = "/board/create")
+    public ResponseEntity<?> boardCreate(@CurrentUser UserPrincipal userPrincipal, @RequestBody BoardInfoDto dto, List<MultipartFile> files){
+        return boardService.create(userPrincipal, dto, files);
     }
 }

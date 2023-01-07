@@ -67,7 +67,8 @@ public class WebSecurityConfig {
         http.authorizeRequests()            
                 .antMatchers("/h2-console/**").permitAll()                    
                 .antMatchers("/auth/**").permitAll()
-                .antMatchers("/loginPage", "/customSignup","/signin", "/signout","/home", "/authtest").permitAll()
+                .antMatchers("/loginPage", "/customSignup","/signin", "/signout","/home", "/authtest", "/main").permitAll()
+                .antMatchers("/list/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
             .headers()
@@ -86,7 +87,7 @@ public class WebSecurityConfig {
                 //     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                 //     Authentication authentication) throws IOException, ServletException{
                 //         System.out.println("authentication : " + authentication.getName());
-                //         response.sendRedirect("/auth/main");
+                //         response.sendRedirect("/main");
                 //     }
                 // })
                 .failureHandler(authenticationFailureHandler())

@@ -19,7 +19,7 @@ public class CustomUrlAuthenticationSuccessHandler implements AuthenticationSucc
         
         String userName = request.getParameter("username");
 
-        response.sendRedirect("/auth/loginPage?success=true");
+        response.sendRedirect("/loginPage?success=true");
         
     } 
     

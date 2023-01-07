@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko" 
+		xmlns:th="http://www.thymeleaf.org" 
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+	<body th:fragment="main-body">
+		<div class="main-box">
+			<!-- <th:block layout:fragment=""> -->
+
+			<!-- <div class="fixed-navbar">
+				<div class="pull-left">
+					<a th:href="@{/boardPage/page}">
+						<h1 class="page-title" style="color:rgb(131, 169, 202)">Board</h1>
+					</a>
+				</div>
+			</div> -->
+			
+			<!-- /.fixed-navbar -->		
+			<div id="wrapper">
+				<div class="row" style="padding-right: 100px;">
+					<div class="col-md-10">
+						<div id="content-wrapper" class="d-flex flex-column">
+							<div class="box-content-temp">
+								<div class="clearfix">
+									<h4 class="box-title pull-left"></h4>			
+									<th:block layout:fragment="search"></th:block>
+								</div>
+		
+								<th:block layout:fragment="content"></th:block>
+		
+								<th:block layout:fragment="paging"></th:block>
+							</div>			
+							<th:block layout:fragment="add-content"></th:block>
+						</div>
+					</div>
+				</div>
+					
+					<!-- /.row row-inline-block small-spacing -->
+					<th:block layout:fragment="footer"></th:block>
+				
+				<!-- /.main-content -->
+			</div>
+			<!-- /#wrapper -->	
+		</div>
+		
+
+		<script th:src="@{/scripts/jquery.min.js}"></script>
+		<script th:src="@{/plugin/bootstrap/js/bootstrap.min.js}"></script>
+		<script th:src="@{/plugin/mCustomScrollbar/jquery.mCustomScrollbar.concat.min.js}"></script>
+
+		<script th:src="@{/scripts/main.js}"></script>
+		<script th:src="@{/scripts/common.js}"></script>
+
+		<th:block layout:fragment="script"></th:block>
+	</body>
+</html>
