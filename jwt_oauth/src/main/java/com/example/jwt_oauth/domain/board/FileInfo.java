@@ -7,7 +7,12 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.ToString;
+
 @Entity
+@Getter
+@ToString
 public class FileInfo {
 
     @Id
@@ -32,6 +37,8 @@ public class FileInfo {
         this.filePath = builder.filePath;
         this.boardInfo = builder.boardInfo;
     }
+
+    public FileInfo(){}
     
     public static class FileInfoBuilder{
         private String fileName;

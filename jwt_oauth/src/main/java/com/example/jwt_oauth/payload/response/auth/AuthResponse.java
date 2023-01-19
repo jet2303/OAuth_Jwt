@@ -1,4 +1,4 @@
-package com.example.jwt_oauth.payload.response;
+package com.example.jwt_oauth.payload.response.auth;
 
 import lombok.Builder;
 import lombok.Data;

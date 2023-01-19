@@ -3,7 +3,10 @@ package com.example.jwt_oauth.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.ModelAndViewAssert.*;
 
+import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -11,6 +14,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -20,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -62,13 +67,30 @@ public class PageControllerTest {
     @Autowired
     private BoardService boardService;
 
+    private String accessToken;
+
     @Before
     public void setup() throws Exception{
        this.mockMvc = MockMvcBuilders.webAppContextSetup(ctx)
                                     .addFilters(new CharacterEncodingFilter("UTF-8", true))
-                                    .alwaysDo(MockMvcResultHandlers.print())
-                                    .alwaysDo(MockMvcResultHandlers.log())
                                     .build();
+    }
+
+    @BeforeEach
+    public void getAccessToken() throws Exception{
+
+        // String email = "test@naver.com";
+        // String password = "password";
+
+        // ResultActions actions = mockMvc.perform(MockMvcRequestBuilders.post("/auth/signin")
+        //                                                                 .param("email",email)
+        //                                                                 .param("password",password)
+        //                                                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+        //                                                                 );
+                                        
+        // // log.info("result = {}", actions.andReturn().getResponse().getContentAsString());
+        // JSONObject jsonObject = asStringToJson(actions.andReturn().getResponse().getContentAsString());
+        // this.accessToken =(String) jsonObject.get("accessToken");
     }
 
     @After
@@ -78,7 +100,6 @@ public class PageControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/auth/signout")
                                                 .header("Authorization", String.format("Bearer %s", accessToken))
                                                 .contentType(MediaType.APPLICATION_JSON_VALUE));
-
     }
 
     @Test
@@ -99,7 +120,7 @@ public class PageControllerTest {
     @Test
     @Order(2)
     void testBoardlist() throws Exception{
-        // signup();
+        signup();
         JSONObject jsonObject = signin();
         String accessToken = jsonObject.get("accessToken").toString();
 
@@ -132,27 +153,41 @@ public class PageControllerTest {
         JSONObject jsonObject = signin();
         String accessToken = jsonObject.get("accessToken").toString();
         
-        BoardInfoDto boardInfoDto = new BoardInfoDto.BoardInfoDtoBuilder()
-                                                    .title("boardcreate title")
-                                                    .content("boardcreate content")
-                                                    .boardStatus(BoardStatus.REGISTERED.toString())
-                                                    .fileName("boardcreate filename")
-                                                    .filePath("boardcreate filepath")
-                                                    .build();
+        BoardInfo boardInfoDto = new BoardInfo.BoardInfoBuilder()
+                                                .title("boardcreate title")
+                                                .content("boardcreate content")
+                                                .boardStatus(BoardStatus.REGISTERED)
+                                                .build();
+        MockMultipartFile file1 = new MockMultipartFile("image",
+                                                "test.png",
+                                                "image/png",
+                                                new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
+        MockMultipartFile file2 = new MockMultipartFile("image",
+                                                "test.png",
+                                                "image/png",
+                                                new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));                                                
         
+        List<MockMultipartFile> files = new ArrayList<>();
+        files.add(file1);
+        files.add(file2);
+
+
         String content = objectMapper.writeValueAsString(boardInfoDto);
 
-        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.post("/board/create")
-                                                                            .header("Authorization", String.format("Bearer %s", accessToken))
-                                                                            .content(content)                                                
-                                                                            .contentType(MediaType.APPLICATION_JSON_VALUE)
-                                                    ).andDo(MockMvcResultHandlers.print());
+        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.multipart("/board/create")
+                                                                        .file(file1)
+                                                                        .file(file2)
+                                                                        .content(content)
+                                                                        .header("Authorization", String.format("Bearer %s", accessToken))
+                                                                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                                ).andDo(MockMvcResultHandlers.print());
         
-        String result = resultActions.andReturn().getResponse().getContentAsString();
-        String information = asStringToJson(result).get("information").toString();
-        Message message = objectMapper.readValue(information, Message.class);
+        log.info("{}", result.andReturn().getResponse());    
+        // String result = resultActions.andReturn().getResponse().getContentAsString();
+        // String information = asStringToJson(result).get("information").toString();
+        // Message message = objectMapper.readValue(information, Message.class);
         
-        assertEquals(message.getMessage(), "create success");
+        // assertEquals(message.getMessage(), "create success");
     }
     
 

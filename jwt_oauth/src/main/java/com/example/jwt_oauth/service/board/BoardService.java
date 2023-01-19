@@ -16,10 +16,13 @@ import com.example.jwt_oauth.domain.board.BoardStatus;
 import com.example.jwt_oauth.domain.board.FileInfo;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto.BoardInfoDtoBuilder;
+import com.example.jwt_oauth.payload.Header;
 import com.example.jwt_oauth.payload.response.ApiResponse;
 import com.example.jwt_oauth.payload.response.Message;
+import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
 import com.example.jwt_oauth.repository.board.BoardRepository;
 import com.example.jwt_oauth.repository.board.FileInfoRepository;
+import com.example.jwt_oauth.repository.board.projection.Boardlist;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,17 +37,17 @@ public class BoardService {
 
      String filePath = "D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
      
-    public ResponseEntity<?> create(@CurrentUser UserPrincipal userPrincipal, BoardInfoDto boardInfoDto
-                                    ,List<MultipartFile> files){
+    public Header<BoardApiResponse> create(final BoardInfo boardInfo, final List<MultipartFile> files){
         
-        try{
-            BoardInfo boardInfo = dtoToBoard(boardInfoDto);
-            BoardInfo boardSaved = boardRepository.save(boardInfo);
+        BoardInfo boardSaved = boardRepository.save(boardInfo);
+        log.info("{}",boardSaved);
 
-            log.info("{}",boardSaved);
-            
+        List<FileInfo> fileList = new ArrayList<>();
+        try{
+            // BoardInfo boardInfo = dtoToBoard(boardInfoDto);
+            // BoardInfo boardSaved = boardRepository.save(boardInfo);
+
             if(files != null){
-                List<FileInfo> fileList = new ArrayList<>();
                 for (MultipartFile file : files) {
                     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
                     File saveFile = new File(filePath,fileName);
@@ -64,23 +67,44 @@ public class BoardService {
             e.printStackTrace();
         }
         
-        return ResponseEntity.ok(ApiResponse.builder()
-                                                .check(true)
-                                                .information(Message.builder()
-                                                                        .message("create success")
-                                                                        .build())
-                                                .build());
+        return Header.OK(new BoardApiResponse(boardSaved, fileList));
     }
 
-    public ResponseEntity<?> read(@CurrentUser UserPrincipal userPrincipal){
+    public Header<BoardApiResponse> read(final Long id){
 
-        return ResponseEntity.ok(ApiResponse.builder()
-                                                .check(false)
-                                                .information(Message.builder()
-                                                                        .message("fail")
-                                                                        .build())
-                                                .build());
+        BoardInfo boardInfo = boardRepository.findById(id).get();
+        // return Header.ERROR();
+        return Header.OK(BoardApiResponse.builder()
+                                            .id(boardInfo.getId())
+                                            .title(boardInfo.getTitle())
+                                            .content(boardInfo.getContent())
+                                            .boardStatus(boardInfo.getBoardStatus())
+                                            .createdDate(boardInfo.getCreatedDate())
+                                            .createBy(boardInfo.getCreatedBy())
+                                            .modifiedDate(boardInfo.getModifiedDate())
+                                            .modifiedBy(boardInfo.getModifiedBy())
+                                            .fileList(boardInfo.getFileInfoList())
+                                            .build());
+
     }
+
+    public Header<List<BoardApiResponse>> getBoardList(){
+        List<BoardApiResponse> boardApiResponses = new ArrayList<>();
+        List<Boardlist> boardList = boardRepository.findByBoardStatus(BoardStatus.REGISTERED).get();
+        for (Boardlist board : boardList) {
+            BoardApiResponse newBoard = BoardApiResponse.builder()
+                                                            .id(board.getId())
+                                                            .title(board.getTitle())
+                                                            .createdDate(board.getCreatedDate())
+                                                            .build();
+            boardApiResponses.add(newBoard);
+        }
+        
+
+        return Header.OK(boardApiResponses);
+    }
+
+    
 
     public ResponseEntity<?> update(@CurrentUser UserPrincipal userPrincipal){
 

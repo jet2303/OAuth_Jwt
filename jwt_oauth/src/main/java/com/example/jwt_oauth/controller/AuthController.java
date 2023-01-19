@@ -25,7 +25,7 @@ import com.example.jwt_oauth.payload.request.auth.ChangePasswordRequest;
 import com.example.jwt_oauth.payload.request.auth.RefreshTokenRequest;
 import com.example.jwt_oauth.payload.request.auth.SignInRequest;
 import com.example.jwt_oauth.payload.request.auth.SignUpRequest;
-import com.example.jwt_oauth.payload.response.AuthResponse;
+import com.example.jwt_oauth.payload.response.auth.AuthResponse;
 import com.example.jwt_oauth.service.user.auth.AuthService;
 
 import lombok.RequiredArgsConstructor;

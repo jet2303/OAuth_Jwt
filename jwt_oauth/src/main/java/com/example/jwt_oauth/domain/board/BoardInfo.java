@@ -6,6 +6,7 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -17,7 +18,8 @@ import lombok.ToString;
 
 @Entity
 @Getter
-@ToString(exclude = "fileInfoList")
+// @ToString(exclude = "fileInfoList")
+@ToString
 public class BoardInfo extends BaseEntity{
     
     @Id 
@@ -27,15 +29,21 @@ public class BoardInfo extends BaseEntity{
     @NotBlank
     private String title;
 
+    // 작성자 추가
+    // @NotBlank
+    // private String name;
+
     private String content;
 
     @Enumerated(EnumType.STRING)
     private BoardStatus boardStatus;
 
-    @OneToMany(mappedBy = "boardInfo", orphanRemoval = true)
+    @OneToMany(mappedBy = "boardInfo", orphanRemoval = true, fetch = FetchType.EAGER)
     private List<FileInfo> fileInfoList = new ArrayList<>();
 
     public static class BoardInfoBuilder{
+        private Long id;
+        
         private String title;
 
         private String content;
@@ -47,6 +55,11 @@ public class BoardInfo extends BaseEntity{
         // public BoardInfoBuilder builder(){
         //     return this;
         // }
+
+        public BoardInfoBuilder id(Long id){
+            this.id = id;
+            return this;
+        }
 
         public BoardInfoBuilder title(String title){
             this.title = title;

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="layout/basic">
+	<th:block layout:fragment="title">
+		<title>thiThe page is a write page</title>
+	</th:block>
+
+	<th:block layout:fragment="content">
+		<div class="card-content">
+			<form class="form-horizontal" name="contentName" th:action="@{/boardPage}" th:object="${boardDetail}" method="post" enctype="multipart/form-data">
+				<!-- th:object="${boardDetail}" -->
+				<!-- th:if="${id != null and id>0}" -->
+                <!-- onsubmit="return registerBoard(this) -->
+				<!--/* update의 경우 서버로 전달할 게시글 번호 (PK) */-->
+				<!-- <input type="hidden" th:if="*{id != null and id > 0}" th:field="*{id}" /> -->
+			
+				<div class="form-group">
+					<label for="title" class="col-sm-2 control-label">제목</label>
+					<div class="col-sm-10">
+						<input type="text" th:field="*{title}" class="form-control" placeholder="제목을 입력해 주세요." />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="content" class="col-sm-2 control-label">내용</label>
+					<div class="col-sm-10">
+						<textarea th:field="*{content}" class="form-control" placeholder="내용을 입력해 주세요."></textarea>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="inp-type-5" class="col-sm-2 control-label">첨부파일</label>
+					<div class="col-sm-10">
+						<p class="form-control">
+							<input type="file" name="uploadfiles" multiple="multiple" class="custom-file-input" >
+						</p>
+					</div>
+				</div>
+
+				<div class="btn_wrap text-center">
+					<a th:href="@{/boardPage/main}" class="btn btn-default waves-effect waves-light">뒤로가기</a>
+					<button type="submit" class="btn btn-primary waves-effect waves-light">저장하기</button>
+				</div>
+			</form>
+
+		</div>
+		<!-- /.card-content -->
+	</th:block>
+
+	<th:block layout:fragment="script">
+		<script th:inline="javascript">
+			/*<![CDATA[*/
+
+			function registerBoard(form) {
+
+				// form.noticeYn.value = form.noticeYn.checked == false ? 'N' : 'Y';
+				// form.secretYn.value = form.secretYn.checked == false ? 'N' : 'Y';
+
+				var result = (
+						   isValid(form.title, "제목", null, null)
+						&& isValid(form.content, "내용", null, null)
+				);
+
+				if ( result == false ) {
+					return false;
+				}
+			}
+			/*[- end of function -]*/
+
+			/*]]>*/
+		</script>
+	</th:block>
+</html>

@@ -35,8 +35,8 @@ import com.example.jwt_oauth.payload.request.auth.RefreshTokenRequest;
 import com.example.jwt_oauth.payload.request.auth.SignInRequest;
 import com.example.jwt_oauth.payload.request.auth.SignUpRequest;
 import com.example.jwt_oauth.payload.response.ApiResponse;
-import com.example.jwt_oauth.payload.response.AuthResponse;
 import com.example.jwt_oauth.payload.response.Message;
+import com.example.jwt_oauth.payload.response.auth.AuthResponse;
 import com.example.jwt_oauth.repository.auth.TokenRepository;
 import com.example.jwt_oauth.repository.user.UserRepository;
 
@@ -161,6 +161,7 @@ public class AuthService {
             e.printStackTrace();
         }
         
+        log.info("access token = {}", tokenMapping.getAccessToken());
         return ResponseEntity.created(location).body(authResponse);
         // return ResponseEntity.ok(authResponse);    
 

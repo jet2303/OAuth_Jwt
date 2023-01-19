@@ -8,7 +8,7 @@ import lombok.ToString;
 @ToString
 public class ApiResponse {
     
-    private boolean check;
+    private boolean check = false;
 
     private Object information;
 

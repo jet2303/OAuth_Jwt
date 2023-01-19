@@ -69,9 +69,4 @@ public class PageController {
         return new ModelAndView("/page/list")
                     .addObject("boardList", boardService.getList(userPrincipal)); 
     }
-
-    @PostMapping(value = "/board/create")
-    public ResponseEntity<?> boardCreate(@CurrentUser UserPrincipal userPrincipal, @RequestBody BoardInfoDto dto, List<MultipartFile> files){
-        return boardService.create(userPrincipal, dto, files);
-    }
 }
