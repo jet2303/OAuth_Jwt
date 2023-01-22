@@ -6,6 +6,7 @@ public interface Boardlist {
 
     Long getId();
     String getTitle();
+    String getContent();
     // String getName();
     LocalDateTime getCreatedDate();
     

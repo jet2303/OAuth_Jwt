@@ -1,12 +1,14 @@
 package com.example.jwt_oauth.payload;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Builder
 public class Pagenation{
 
     private int totalPages;
@@ -17,45 +19,5 @@ public class Pagenation{
 
     private int currentElements;
 
-    public Pagenation(PagenationBuilder pagenationBuilder){
-        this.totalPages = pagenationBuilder.totalPages;
-        this.totalElements = pagenationBuilder.totalElements;
-        this.currentPage = pagenationBuilder.currentPage;
-        this.currentElements = pagenationBuilder.currentElements;
-    }
-
-    public static class PagenationBuilder{
-        private int totalPages;
-        private long totalElements;
-        private int currentPage;
-        private int currentElements;
-
-        public PagenationBuilder Builder(){
-            return this;
-        }
-
-        public PagenationBuilder totalPages(int totalPages){
-            this.totalPages = totalPages;
-            return this;
-        }
-    
-        public PagenationBuilder totalElements(long totalElements){
-            this.totalElements = totalElements;
-            return this;
-        }
-    
-        public PagenationBuilder currentPage(int currentPage){
-            this.currentPage = currentPage;
-            return this;
-        }
-    
-        public PagenationBuilder currentElements(int currentElements){
-            this.currentElements = currentElements;
-            return this;
-        }
-
-        public Pagenation build(){
-            return new Pagenation(this);
-        }
-    }
+    //추후에 빌더 static 클래스 만들어놓기
 }

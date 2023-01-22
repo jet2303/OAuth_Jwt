@@ -40,6 +40,7 @@ import com.example.jwt_oauth.domain.board.BoardStatus;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto;
 import com.example.jwt_oauth.payload.response.ApiResponse;
 import com.example.jwt_oauth.payload.response.Message;
+import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
 import com.example.jwt_oauth.repository.board.BoardRepository;
 import com.example.jwt_oauth.service.board.BoardService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -153,16 +154,22 @@ public class PageControllerTest {
         JSONObject jsonObject = signin();
         String accessToken = jsonObject.get("accessToken").toString();
         
-        BoardInfo boardInfoDto = new BoardInfo.BoardInfoBuilder()
-                                                .title("boardcreate title")
-                                                .content("boardcreate content")
-                                                .boardStatus(BoardStatus.REGISTERED)
-                                                .build();
-        MockMultipartFile file1 = new MockMultipartFile("image",
+        // BoardInfo boardInfoDto = new BoardInfo.BoardInfoBuilder()
+        //                                         .title("boardcreate title")
+        //                                         .content("boardcreate content")
+        //                                         .boardStatus(BoardStatus.REGISTERED)
+        //                                         .build();
+        BoardApiResponse response = BoardApiResponse.builder()
+                                                    .title("boardcreate title")
+                                                    .content("boardcreate content")
+                                                    .boardStatus(BoardStatus.REGISTERED)
+                                                    .build();
+                                                    
+        MockMultipartFile file1 = new MockMultipartFile("uploadfiles",
                                                 "test.png",
                                                 "image/png",
                                                 new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
-        MockMultipartFile file2 = new MockMultipartFile("image",
+        MockMultipartFile file2 = new MockMultipartFile("uploadfiles",
                                                 "test.png",
                                                 "image/png",
                                                 new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));                                                
@@ -172,22 +179,23 @@ public class PageControllerTest {
         files.add(file2);
 
 
-        String content = objectMapper.writeValueAsString(boardInfoDto);
+        String content = objectMapper.writeValueAsString(response);
 
         ResultActions result = mockMvc.perform(MockMvcRequestBuilders.multipart("/board/create")
                                                                         .file(file1)
                                                                         .file(file2)
-                                                                        .content(content)
+                                                                        .param("title", response.getTitle())
+                                                                        .param("content", response.getContent())
+                                                                        .param("boardStatus", response.getBoardStatus().toString())
                                                                         .header("Authorization", String.format("Bearer %s", accessToken))
                                                                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                                                 ).andDo(MockMvcResultHandlers.print());
         
-        log.info("{}", result.andReturn().getResponse());    
-        // String result = resultActions.andReturn().getResponse().getContentAsString();
-        // String information = asStringToJson(result).get("information").toString();
-        // Message message = objectMapper.readValue(information, Message.class);
+        // log.info("{}", result.andReturn().getResponse().getContentAsString());    
+        assertEquals(boardRepository.findAll().size(), 1);
+        assertEquals(boardRepository.findById(1L).get().getFileInfoList().size(), 2);
+        assertEquals(result.andReturn().getResponse().getRedirectedUrl(), "/page");
         
-        // assertEquals(message.getMessage(), "create success");
     }
     
 

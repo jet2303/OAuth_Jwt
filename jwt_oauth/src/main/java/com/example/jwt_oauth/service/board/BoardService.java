@@ -4,7 +4,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +20,7 @@ import com.example.jwt_oauth.domain.board.FileInfo;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto.BoardInfoDtoBuilder;
 import com.example.jwt_oauth.payload.Header;
+import com.example.jwt_oauth.payload.Pagenation;
 import com.example.jwt_oauth.payload.response.ApiResponse;
 import com.example.jwt_oauth.payload.response.Message;
 import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
@@ -36,17 +40,20 @@ public class BoardService {
     private final FileInfoRepository fileInfoRepository;
 
      String filePath = "D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
-     
-    public Header<BoardApiResponse> create(final BoardInfo boardInfo, final List<MultipartFile> files){
+
+    /**
+    * @date : 2023-01-20 오후 2:07
+    * @author : AJS
+    * @Description: 파라미터 boardInfo → BoardApiResponse로 변경
+    **/
+    public Header<BoardApiResponse> create(final BoardApiResponse boardApiResponse, final List<MultipartFile> files){
+        BoardInfo boardInfo = responseToBoard(boardApiResponse);
         
-        BoardInfo boardSaved = boardRepository.save(boardInfo);
-        log.info("{}",boardSaved);
+        // BoardInfo boardSaved = boardRepository.save(boardInfo);
 
         List<FileInfo> fileList = new ArrayList<>();
         try{
-            // BoardInfo boardInfo = dtoToBoard(boardInfoDto);
-            // BoardInfo boardSaved = boardRepository.save(boardInfo);
-
+        
             if(files != null){
                 for (MultipartFile file : files) {
                     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
@@ -55,7 +62,7 @@ public class BoardService {
                     FileInfo fileInfo = new FileInfo.FileInfoBuilder()
                                                     .fileName(fileName)
                                                     .filePath("/files/" + fileName)
-                                                    .boardInfo(boardSaved)
+                                                    // .boardInfo(boardSaved)
                                                     .build();
                     fileList.add(fileInfo);
                 }
@@ -66,7 +73,13 @@ public class BoardService {
         }catch(Exception e){
             e.printStackTrace();
         }
+        boardInfo.setFileInfoList(fileList);
+        boardInfo.setBoardStatus(BoardStatus.REGISTERED);
         
+        //createdDate, modifiedDate 입력안되는것 확인
+        BoardInfo boardSaved = boardRepository.save(boardInfo);
+
+
         return Header.OK(new BoardApiResponse(boardSaved, fileList));
     }
 
@@ -88,21 +101,21 @@ public class BoardService {
 
     }
 
-    public Header<List<BoardApiResponse>> getBoardList(){
-        List<BoardApiResponse> boardApiResponses = new ArrayList<>();
-        List<Boardlist> boardList = boardRepository.findByBoardStatus(BoardStatus.REGISTERED).get();
-        for (Boardlist board : boardList) {
-            BoardApiResponse newBoard = BoardApiResponse.builder()
-                                                            .id(board.getId())
-                                                            .title(board.getTitle())
-                                                            .createdDate(board.getCreatedDate())
-                                                            .build();
-            boardApiResponses.add(newBoard);
-        }
+    // public Header<List<BoardApiResponse>> getBoardList(){
+    //     List<BoardApiResponse> boardApiResponses = new ArrayList<>();
+    //     List<Boardlist> boardList = boardRepository.findByBoardStatus(BoardStatus.REGISTERED).get();
+    //     for (Boardlist board : boardList) {
+    //         BoardApiResponse newBoard = BoardApiResponse.builder()
+    //                                                         .id(board.getId())
+    //                                                         .title(board.getTitle())
+    //                                                         .createdDate(board.getCreatedDate())
+    //                                                         .build();
+    //         boardApiResponses.add(newBoard);
+    //     }
         
 
-        return Header.OK(boardApiResponses);
-    }
+    //     return Header.OK(boardApiResponses);
+    // }
 
     
 
@@ -126,41 +139,77 @@ public class BoardService {
                                                 .build());
     }
 
-    public ResponseEntity<?> getList(@CurrentUser UserPrincipal userPrincipal){
+    public Header<List<BoardApiResponse>> getList(){
+        // List<Board> boardList = boardRepository.findAll();
+        List<Boardlist> boardList = boardRepository.findByBoardStatus(BoardStatus.REGISTERED)
+                                                    .orElseThrow( () -> new RuntimeException("등록된 게시글이 없습니다."));
 
-        List<BoardInfo> boardInfos = boardRepository.findAll();
+        if(boardList.size()<1){
+            // return new RuntimeException();
+        }
+        List<BoardApiResponse> boardApiResponses = new ArrayList<>();
 
+        boardList.stream().map( board-> boardApiResponses.add(response(board)));
 
-        return ResponseEntity.ok(ApiResponse.builder()
-                                                .check(false)
-                                                .information(boardInfos)
-                                                .build());
+        return Header.OK(boardApiResponses);
     }
 
-    private BoardInfoDto boardToDto(BoardInfo boardInfo){
-        BoardInfoDto dto = new BoardInfoDtoBuilder().title(boardInfo.getTitle())
-                                                    .content(boardInfo.getContent())
-                                                    .boardStatus(boardInfo.getBoardStatus().toString())
-                                                    // .fileName(boardInfo.)
-                                                    .build();
-        return dto;
-    }
-
-    private BoardInfo dtoToBoard(BoardInfoDto dto){
-        BoardInfo boardInfo = new BoardInfo.BoardInfoBuilder()
-                                            .title(dto.getTitle())
-                                            .content(dto.getContent())
-                                            .boardStatus(BoardStatus.valueOf(dto.getBoardStatus()))
-                                            .build();
+    public Header<List<BoardApiResponse>> search(Pageable pageable){
+        
+        Page<Boardlist> boards = boardRepository.findByBoardStatus(BoardStatus.REGISTERED, pageable)
+                                                .orElseThrow(() -> new RuntimeException("등록된 게시글이 없습니다."));
                                             
+                                            
+        List<BoardApiResponse> boardApiResponses = boards.stream().map(board -> response(board))
+                                                                    .collect(Collectors.toList());
+        
+
+        Pagenation pagenation = Pagenation.builder()
+                                            .totalPages(boards.getTotalPages())
+                                            .totalElements(boards.getTotalElements())
+                                            .currentPage(boards.getNumber())
+                                            .currentElements(boards.getNumberOfElements())
+                                            .build();
+
+        return Header.OK(boardApiResponses, pagenation);
+    }
+
+    private BoardApiResponse response(Boardlist boardList){
+        BoardApiResponse response = BoardApiResponse.builder()
+                                                        .id(boardList.getId())
+                                                        .title(boardList.getTitle())
+                                                        .content(boardList.getContent())
+                                                        .createdDate(boardList.getCreatedDate())
+                                                        .build();
+        return response;                                                        
+    }
+
+
+    private BoardInfo responseToBoard(BoardApiResponse response){
+        BoardInfo boardInfo = new BoardInfo.BoardInfoBuilder()
+                                            .title(response.getTitle())
+                                            .content(response.getContent())
+                                            .boardStatus(response.getBoardStatus())
+                                            .build();
         return boardInfo;
     }
 
-    private FileInfo dtoToFile(BoardInfoDto dto){
-        FileInfo fileInfo = new FileInfo.FileInfoBuilder()
-                                        .fileName(dto.getFileName())
-                                        .filePath(dto.getFilePath())
-                                        .build();
-        return fileInfo;                                       
-    }
+
+
+    // private BoardInfoDto boardToDto(BoardInfo boardInfo){
+    //     BoardInfoDto dto = new BoardInfoDtoBuilder().title(boardInfo.getTitle())
+    //                                                 .content(boardInfo.getContent())
+    //                                                 .boardStatus(boardInfo.getBoardStatus().toString())
+    //                                                 // .fileName(boardInfo.)
+    //                                                 .build();
+    //     return dto;
+    // }
+
+    // private FileInfo dtoToFile(BoardInfoDto dto){
+    //     FileInfo fileInfo = new FileInfo.FileInfoBuilder()
+    //                                     .fileName(dto.getFileName())
+    //                                     .filePath(dto.getFilePath())
+    //                                     .build();
+    //     return fileInfo;                                       
+    // }
 }

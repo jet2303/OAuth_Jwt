@@ -3,8 +3,10 @@ package com.example.jwt_oauth.payload;
 import java.time.LocalDateTime;
 
 import lombok.Builder;
+import lombok.Getter;
 
 @Builder
+@Getter
 @SuppressWarnings("unchecked")
 public class Header<T> {
     private LocalDateTime transactionTime;         // ISO format,  YYYY-MM-DD HH:mm:ss
@@ -18,7 +20,7 @@ public class Header<T> {
     //generic으로
     private T data;
 
-    // private Pagenation pagenation;    
+    private Pagenation pagenation;    
 
     public static <T> Header<T> OK(){
         
@@ -46,14 +48,14 @@ public class Header<T> {
                                     .build();
     }
 
-    // //DATA OK(메소드 오버로딩 pagenation)
-    // public static <T> Header<T> OK(T data,Pagenation pagenation){                 //매개변수로 data
-    //     return (Header<T>) Header.builder()
-    //             .transactionTime(LocalDateTime.now())
-    //             .resultCode("OK")
-    //             .description("OK")
-    //             .data(data)
-    //             .pagenation(pagenation)
-    //             .build();
-    // }
+    //DATA OK(메소드 오버로딩 pagenation)
+    public static <T> Header<T> OK(T data, Pagenation pagenation){                 
+        return (Header<T>) Header.builder()
+                .transactionTime(LocalDateTime.now())
+                .resultCode("OK")
+                .description("OK")
+                .data(data)
+                .pagenation(pagenation)
+                .build();
+    }
 }

@@ -14,10 +14,41 @@
 					<tr>
 						<th>번호</th>
 						<th>제목</th>
-						<th>작성자</th>
+						<!-- <th>작성자</th> -->
 						<th>등록일</th>
 					</tr>
 				</thead>
+				<tbody>
+					
+					<tr th:if="${not #lists.isEmpty( boardList )}" th:each="row : ${boardList}">
+						<td scope="row" th:text="${row.id}"></td>
+							<td class="text-left">
+								<a th:href="@{/boardPage/{id} (id=${row.id} )}" th:text="${row.title}"></a>
+							</td>
+						<!-- <td th:text="${row.userName}"></td>	 -->
+						<td th:text="${row.createBy}"></td>
+					
+						
+					</tr>
+					
+					<tr th:unless="${not #lists.isEmpty( pagenation )}">
+						<td colspan="5">조회된 결과가 없습니다.</td>
+					</tr>
+					<!-- <td th:text="${pagenation.data.boardApiResponse}"></td> -->
+					<!-- <tr th:if="${not #lists.isEmpty( pagenation.boardApiResponses )}" th:each="row : ${pagenation.boardApiResponses}">
+						
+						<td scope="row" th:text="${row.id}"></td>
+							<td class="text-left">
+								<a th:href="@{/boardPage/{id} (id=${row.id} )}" th:text="${row.title}"></a>
+							</td>
+							<td th:text="${row.createdBy}"></td>
+						</td>
+					</tr> -->
+						
+					<!-- <tr th:unless="${not #lists.isEmpty( pagenation.boardApiResponses )}">
+						<td colspan="5">조회된 결과가 없습니다.</td>
+					</tr> -->
+				</tbody>
 				
 			</table>
 

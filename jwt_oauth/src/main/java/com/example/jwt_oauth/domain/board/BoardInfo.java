@@ -3,6 +3,8 @@ package com.example.jwt_oauth.domain.board;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -14,16 +16,19 @@ import javax.persistence.OneToMany;
 import javax.validation.constraints.NotBlank;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @Entity
 @Getter
+@Setter
 // @ToString(exclude = "fileInfoList")
 @ToString
 public class BoardInfo extends BaseEntity{
     
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "board_id")
     private Long id;
 
     @NotBlank
@@ -31,14 +36,15 @@ public class BoardInfo extends BaseEntity{
 
     // 작성자 추가
     // @NotBlank
-    // private String name;
+    // private String userName;
 
     private String content;
 
     @Enumerated(EnumType.STRING)
     private BoardStatus boardStatus;
 
-    @OneToMany(mappedBy = "boardInfo", orphanRemoval = true, fetch = FetchType.EAGER)
+    // 양방향 말고 단방향으로 수정해볼것.
+    @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<FileInfo> fileInfoList = new ArrayList<>();
 
     public static class BoardInfoBuilder{
@@ -87,6 +93,7 @@ public class BoardInfo extends BaseEntity{
     }
 
     public BoardInfo(BoardInfoBuilder boardInfoBuilder){
+        this.id = boardInfoBuilder.id;
         this.title = boardInfoBuilder.title;
         this.content = boardInfoBuilder.content;
         this.boardStatus = boardInfoBuilder.boardStatus;
