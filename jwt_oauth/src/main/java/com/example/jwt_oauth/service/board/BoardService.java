@@ -21,6 +21,7 @@ import com.example.jwt_oauth.domain.dto.BoardInfoDto;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto.BoardInfoDtoBuilder;
 import com.example.jwt_oauth.payload.Header;
 import com.example.jwt_oauth.payload.Pagenation;
+import com.example.jwt_oauth.payload.request.board.CreateBoardRequest;
 import com.example.jwt_oauth.payload.response.ApiResponse;
 import com.example.jwt_oauth.payload.response.Message;
 import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
@@ -42,12 +43,12 @@ public class BoardService {
      String filePath = "D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
 
     /**
-    * @date : 2023-01-20 오후 2:07
+    * @date : 2023-01-20
     * @author : AJS
     * @Description: 파라미터 boardInfo → BoardApiResponse로 변경
     **/
-    public Header<BoardApiResponse> create(final BoardApiResponse boardApiResponse, final List<MultipartFile> files){
-        BoardInfo boardInfo = responseToBoard(boardApiResponse);
+    public Header<BoardApiResponse> create(final CreateBoardRequest request, final List<MultipartFile> files){
+        BoardInfo boardInfo = requestToBoard(request);
         
         // BoardInfo boardSaved = boardRepository.save(boardInfo);
 
@@ -75,29 +76,34 @@ public class BoardService {
         }
         boardInfo.setFileInfoList(fileList);
         boardInfo.setBoardStatus(BoardStatus.REGISTERED);
-        
-        //createdDate, modifiedDate 입력안되는것 확인
+        boardInfo.setUserName(filePath);
+
         BoardInfo boardSaved = boardRepository.save(boardInfo);
-
-
+        
+        // log.info("findall : {} , {}", boardSaved.getCreatedDate(), boardSaved.getModifiedDate());
+        // log.info("{}", boardRepository.findById(1L).get()); 
         return Header.OK(new BoardApiResponse(boardSaved, fileList));
     }
+   
 
     public Header<BoardApiResponse> read(final Long id){
 
         BoardInfo boardInfo = boardRepository.findById(id).get();
         // return Header.ERROR();
+
         return Header.OK(BoardApiResponse.builder()
                                             .id(boardInfo.getId())
+                                            .userName(boardInfo.getUserName())
                                             .title(boardInfo.getTitle())
                                             .content(boardInfo.getContent())
                                             .boardStatus(boardInfo.getBoardStatus())
                                             .createdDate(boardInfo.getCreatedDate())
-                                            .createBy(boardInfo.getCreatedBy())
+                                            // .createBy(boardInfo.getCreatedBy())
                                             .modifiedDate(boardInfo.getModifiedDate())
-                                            .modifiedBy(boardInfo.getModifiedBy())
+                                            // .modifiedBy(boardInfo.getModifiedBy())
                                             .fileList(boardInfo.getFileInfoList())
                                             .build());
+        // return Header.OK(new BoardApiResponse(boardInfo, boardInfo.getFileInfoList()));
 
     }
 
@@ -185,11 +191,12 @@ public class BoardService {
     }
 
 
-    private BoardInfo responseToBoard(BoardApiResponse response){
+    private BoardInfo requestToBoard(CreateBoardRequest request){
         BoardInfo boardInfo = new BoardInfo.BoardInfoBuilder()
-                                            .title(response.getTitle())
-                                            .content(response.getContent())
-                                            .boardStatus(response.getBoardStatus())
+                                            .userName(request.getUserName())
+                                            .title(request.getTitle())
+                                            .content(request.getContent())
+                                            .boardStatus(request.getBoardStatus())
                                             .build();
         return boardInfo;
     }

@@ -26,9 +26,8 @@
 								<a th:href="@{/boardPage/{id} (id=${row.id} )}" th:text="${row.title}"></a>
 							</td>
 						<!-- <td th:text="${row.userName}"></td>	 -->
-						<td th:text="${row.createBy}"></td>
-					
-						
+						<td class="text-center" th:text="${#temporals.format( row.createdDate, 'yyyy-MM-dd   HH:mm:ss' )}">
+						<!-- <td th:text="${row.createdDate}"></td> -->
 					</tr>
 					
 					<tr th:unless="${not #lists.isEmpty( pagenation )}">

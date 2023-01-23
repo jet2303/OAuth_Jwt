@@ -34,9 +34,13 @@ public class BoardInfo extends BaseEntity{
     @NotBlank
     private String title;
 
-    // 작성자 추가
-    // @NotBlank
-    // private String userName;
+    /**
+    * @date : 2023-01-23 
+    * @author : AJS
+    * @Description: 작성자 이름 추가
+    **/
+    @NotBlank
+    private String userName;
 
     private String content;
 
@@ -49,6 +53,8 @@ public class BoardInfo extends BaseEntity{
 
     public static class BoardInfoBuilder{
         private Long id;
+
+        private String userName;
         
         private String title;
 
@@ -64,6 +70,11 @@ public class BoardInfo extends BaseEntity{
 
         public BoardInfoBuilder id(Long id){
             this.id = id;
+            return this;
+        }
+
+        public BoardInfoBuilder userName(String userName){
+            this.userName = userName;
             return this;
         }
 

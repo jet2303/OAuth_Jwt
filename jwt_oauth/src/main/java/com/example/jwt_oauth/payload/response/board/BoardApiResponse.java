@@ -29,9 +29,8 @@ public class BoardApiResponse {
     @NotBlank
     private String title;
 
-    // 작성자 추가
-    // @NotBlank
-    // private String name;
+    @NotBlank
+    private String userName;
 
     @NonNull
     private String content;
@@ -55,9 +54,9 @@ public class BoardApiResponse {
         this.content = boardInfo.getContent();
         this.boardStatus = boardInfo.getBoardStatus();
         
-        this.createBy = boardInfo.getCreatedBy();
+        // this.createBy = boardInfo.getCreatedBy();
         this.createdDate = boardInfo.getCreatedDate();
-        this.modifiedBy = boardInfo.getModifiedBy();
+        // this.modifiedBy = boardInfo.getModifiedBy();
         this.modifiedDate = boardInfo.getModifiedDate();
 
         this.fileList = fileList;

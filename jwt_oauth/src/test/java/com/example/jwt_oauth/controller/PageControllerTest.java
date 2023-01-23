@@ -8,6 +8,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -38,6 +40,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import com.example.jwt_oauth.domain.board.BoardInfo;
 import com.example.jwt_oauth.domain.board.BoardStatus;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto;
+import com.example.jwt_oauth.payload.request.board.CreateBoardRequest;
 import com.example.jwt_oauth.payload.response.ApiResponse;
 import com.example.jwt_oauth.payload.response.Message;
 import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
@@ -125,7 +128,7 @@ public class PageControllerTest {
         JSONObject jsonObject = signin();
         String accessToken = jsonObject.get("accessToken").toString();
 
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/list")
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/page")
                                                                     .header("Authorization", String.format("Bearer %s", accessToken))
                                                                     .contentType(MediaType.APPLICATION_JSON_VALUE))
                                             .andDo(MockMvcResultHandlers.print())
@@ -149,22 +152,14 @@ public class PageControllerTest {
 
     @Test
     @Order(1)
+    @Transactional(rollbackOn = {RuntimeException.class})
     void testBoardCreate() throws Exception{
         signup();
         JSONObject jsonObject = signin();
         String accessToken = jsonObject.get("accessToken").toString();
         
-        // BoardInfo boardInfoDto = new BoardInfo.BoardInfoBuilder()
-        //                                         .title("boardcreate title")
-        //                                         .content("boardcreate content")
-        //                                         .boardStatus(BoardStatus.REGISTERED)
-        //                                         .build();
-        BoardApiResponse response = BoardApiResponse.builder()
-                                                    .title("boardcreate title")
-                                                    .content("boardcreate content")
-                                                    .boardStatus(BoardStatus.REGISTERED)
-                                                    .build();
-                                                    
+        CreateBoardRequest request = new CreateBoardRequest("title", "content" , BoardStatus.REGISTERED);
+        
         MockMultipartFile file1 = new MockMultipartFile("uploadfiles",
                                                 "test.png",
                                                 "image/png",
@@ -179,14 +174,14 @@ public class PageControllerTest {
         files.add(file2);
 
 
-        String content = objectMapper.writeValueAsString(response);
+        String content = objectMapper.writeValueAsString(request);
 
         ResultActions result = mockMvc.perform(MockMvcRequestBuilders.multipart("/board/create")
                                                                         .file(file1)
                                                                         .file(file2)
-                                                                        .param("title", response.getTitle())
-                                                                        .param("content", response.getContent())
-                                                                        .param("boardStatus", response.getBoardStatus().toString())
+                                                                        .param("title", request.getTitle())
+                                                                        .param("content", request.getContent())
+                                                                        .param("boardStatus", request.getBoardStatus().toString())
                                                                         .header("Authorization", String.format("Bearer %s", accessToken))
                                                                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                                                 ).andDo(MockMvcResultHandlers.print());

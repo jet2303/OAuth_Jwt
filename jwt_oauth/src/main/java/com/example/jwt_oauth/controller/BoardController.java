@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.jwt_oauth.domain.board.BoardInfo;
 import com.example.jwt_oauth.payload.Header;
+import com.example.jwt_oauth.payload.request.board.CreateBoardRequest;
 import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
 import com.example.jwt_oauth.service.board.BoardService;
 
@@ -37,11 +38,18 @@ public class BoardController {
     * @author : AJS
     * @Description: 파라미터 boardInfo → BoardApiResponse로 변경
     **/
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String create(@ModelAttribute BoardApiResponse boardApiResponse, 
+    // @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // public String create(@ModelAttribute BoardApiResponse boardApiResponse, 
+    //                         @RequestPart(name = "uploadfiles") List<MultipartFile> files){
+        
+    //     boardService.create(boardApiResponse, files);
+    //     return "redirect:/page";
+    // }
+    @PostMapping(value = "/create")
+    public String create(@ModelAttribute CreateBoardRequest request, 
                             @RequestPart(name = "uploadfiles") List<MultipartFile> files){
         
-        boardService.create(boardApiResponse, files);
+        boardService.create(request, files);
         return "redirect:/page";
     }
 
