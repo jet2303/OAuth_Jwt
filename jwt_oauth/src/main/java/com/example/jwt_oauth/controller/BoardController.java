@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.jwt_oauth.config.security.token.UserPrincipal;
 import com.example.jwt_oauth.domain.board.BoardInfo;
 import com.example.jwt_oauth.payload.Header;
 import com.example.jwt_oauth.payload.request.board.CreateBoardRequest;
@@ -47,9 +49,10 @@ public class BoardController {
     // }
     @PostMapping(value = "/create")
     public String create(@ModelAttribute CreateBoardRequest request, 
-                            @RequestPart(name = "uploadfiles") List<MultipartFile> files){
+                            @RequestPart(name = "uploadfiles") List<MultipartFile> files
+                            , @AuthenticationPrincipal UserPrincipal userPrincipal){
         
-        boardService.create(request, files);
+        boardService.create(request, files, userPrincipal);
         return "redirect:/page";
     }
 

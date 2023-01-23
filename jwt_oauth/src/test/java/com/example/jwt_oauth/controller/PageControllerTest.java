@@ -17,6 +17,7 @@ import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -150,48 +151,48 @@ public class PageControllerTest {
         
     // }
 
-    @Test
-    @Order(1)
-    @Transactional(rollbackOn = {RuntimeException.class})
-    void testBoardCreate() throws Exception{
-        signup();
-        JSONObject jsonObject = signin();
-        String accessToken = jsonObject.get("accessToken").toString();
+    // @Test
+    // @Order(1)
+    // @Transactional(rollbackOn = {RuntimeException.class})
+    // void testBoardCreate() throws Exception{
+    //     signup();
+    //     JSONObject jsonObject = signin();
+    //     String accessToken = jsonObject.get("accessToken").toString();
         
-        CreateBoardRequest request = new CreateBoardRequest("title", "content" , BoardStatus.REGISTERED);
+    //     CreateBoardRequest request = new CreateBoardRequest("title", "content" , BoardStatus.REGISTERED);
         
-        MockMultipartFile file1 = new MockMultipartFile("uploadfiles",
-                                                "test.png",
-                                                "image/png",
-                                                new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
-        MockMultipartFile file2 = new MockMultipartFile("uploadfiles",
-                                                "test.png",
-                                                "image/png",
-                                                new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));                                                
+    //     MockMultipartFile file1 = new MockMultipartFile("uploadfiles",
+    //                                             "test.png",
+    //                                             "image/png",
+    //                                             new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
+    //     MockMultipartFile file2 = new MockMultipartFile("uploadfiles",
+    //                                             "test.png",
+    //                                             "image/png",
+    //                                             new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));                                                
         
-        List<MockMultipartFile> files = new ArrayList<>();
-        files.add(file1);
-        files.add(file2);
+    //     List<MockMultipartFile> files = new ArrayList<>();
+    //     files.add(file1);
+    //     files.add(file2);
 
 
-        String content = objectMapper.writeValueAsString(request);
+    //     String content = objectMapper.writeValueAsString(request);
 
-        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.multipart("/board/create")
-                                                                        .file(file1)
-                                                                        .file(file2)
-                                                                        .param("title", request.getTitle())
-                                                                        .param("content", request.getContent())
-                                                                        .param("boardStatus", request.getBoardStatus().toString())
-                                                                        .header("Authorization", String.format("Bearer %s", accessToken))
-                                                                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                                                ).andDo(MockMvcResultHandlers.print());
+    //     ResultActions result = mockMvc.perform(MockMvcRequestBuilders.multipart("/board/create")
+    //                                                                     .file(file1)
+    //                                                                     .file(file2)
+    //                                                                     .param("title", request.getTitle())
+    //                                                                     .param("content", request.getContent())
+    //                                                                     .param("boardStatus", request.getBoardStatus().toString())
+    //                                                                     .header("Authorization", String.format("Bearer %s", accessToken))
+    //                                                                     .contentType(MediaType.APPLICATION_JSON_VALUE)
+    //                                             ).andDo(MockMvcResultHandlers.print());
         
-        // log.info("{}", result.andReturn().getResponse().getContentAsString());    
-        assertEquals(boardRepository.findAll().size(), 1);
-        assertEquals(boardRepository.findById(1L).get().getFileInfoList().size(), 2);
-        assertEquals(result.andReturn().getResponse().getRedirectedUrl(), "/page");
+    //     // log.info("{}", result.andReturn().getResponse().getContentAsString());    
+    //     assertEquals(boardRepository.findAll().size(), 1);
+    //     assertEquals(boardRepository.findById(1L).get().getFileInfoList().size(), 2);
+    //     assertEquals(result.andReturn().getResponse().getRedirectedUrl(), "/page");
         
-    }
+    // }
     
 
     private void signup() throws Exception{

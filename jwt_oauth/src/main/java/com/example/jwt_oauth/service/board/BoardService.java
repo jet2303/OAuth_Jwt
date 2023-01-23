@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +31,7 @@ import com.example.jwt_oauth.repository.board.BoardRepository;
 import com.example.jwt_oauth.repository.board.FileInfoRepository;
 import com.example.jwt_oauth.repository.board.projection.Boardlist;
 
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +50,8 @@ public class BoardService {
     * @author : AJS
     * @Description: 파라미터 boardInfo → BoardApiResponse로 변경
     **/
-    public Header<BoardApiResponse> create(final CreateBoardRequest request, final List<MultipartFile> files){
+    public Header<BoardApiResponse> create(final CreateBoardRequest request, final List<MultipartFile> files
+                                            , UserPrincipal userPrincipal){
         BoardInfo boardInfo = requestToBoard(request);
         
         // BoardInfo boardSaved = boardRepository.save(boardInfo);
@@ -76,7 +80,8 @@ public class BoardService {
         }
         boardInfo.setFileInfoList(fileList);
         boardInfo.setBoardStatus(BoardStatus.REGISTERED);
-        boardInfo.setUserName(filePath);
+        boardInfo.setUserName(userPrincipal.getUserName());
+        
 
         BoardInfo boardSaved = boardRepository.save(boardInfo);
         
@@ -186,6 +191,7 @@ public class BoardService {
                                                         .title(boardList.getTitle())
                                                         .content(boardList.getContent())
                                                         .createdDate(boardList.getCreatedDate())
+                                                        .userName(boardList.getUserName())
                                                         .build();
         return response;                                                        
     }
