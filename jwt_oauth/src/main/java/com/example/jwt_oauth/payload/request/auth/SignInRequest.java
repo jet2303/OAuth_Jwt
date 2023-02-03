@@ -18,4 +18,6 @@ public class SignInRequest {
 
     @NotBlank
     private String password;
+
+    private String rememberMe;
 }

@@ -8,6 +8,8 @@ import javax.transaction.Transactional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationException;
+import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 import org.springframework.stereotype.Service;
 
 import com.example.jwt_oauth.config.security.token.UserPrincipal;
@@ -36,5 +38,6 @@ public class CustomUserDetailsService implements UserDetailsService{
 
         return UserPrincipal.create(user.get());
     }
+    
     
 }

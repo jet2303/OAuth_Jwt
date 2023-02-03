@@ -49,8 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService {
     
     private final AuthenticationManager authenticationManager;
-    // @Autowired(required = true)
-    // private AuthenticationManager authenticationManager;
     
     private final PasswordEncoder passwordEncoder;
     private final CustomTokenProviderService customTokenProviderService;

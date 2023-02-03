@@ -17,7 +17,7 @@ public class CustomUrlAuthenticationFailureHandler implements AuthenticationFail
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException exception) throws IOException, ServletException {
         
-        response.sendRedirect("/auth/loginPage?fail=" + exception.getMessage());
+        response.sendRedirect("/auth/loginPage?ERROR=" + exception.getMessage());
         
     }
     

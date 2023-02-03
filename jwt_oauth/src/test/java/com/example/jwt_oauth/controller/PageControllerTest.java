@@ -191,6 +191,7 @@ public class PageControllerTest {
     //     assertEquals(boardRepository.findAll().size(), 1);
     //     assertEquals(boardRepository.findById(1L).get().getFileInfoList().size(), 2);
     //     assertEquals(result.andReturn().getResponse().getRedirectedUrl(), "/page");
+    //     assertThat(fileUploadService.fileUpload(file), is(FILE_SAVE_PROJECT_PATH + fileNewName));
         
     // }
     
