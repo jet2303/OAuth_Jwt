@@ -97,4 +97,22 @@ public class PageController {
                             .addObject("boardList", boardApiResponses)
                             .addObject("pagenation", pagenation);
     }
+
+    // new Page
+    @GetMapping(value = "/write1")
+    public ModelAndView write1(){
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserPrincipal userPrincipal = (UserPrincipal)authentication;
+
+        return new ModelAndView("/newBoard/page/write")
+                    .addObject("boardApiResponse", new BoardApiResponse())
+                    .addObject("uploadfiles", new FileInfo())
+                    .addObject("userName", userPrincipal.getUserName());
+    }
+
+    @GetMapping(value = "/list1")
+    public ModelAndView boardlist1(@CurrentUser UserPrincipal userPrincipal){
+        return new ModelAndView("/newBoard/page/list")
+                    .addObject("boardList", boardService.getList()); 
+    }
 }

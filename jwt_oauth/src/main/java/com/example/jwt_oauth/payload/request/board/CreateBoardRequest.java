@@ -9,6 +9,7 @@ import com.example.jwt_oauth.domain.board.BoardStatus;
 import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class CreateBoardRequest {
     
     // private Long id;

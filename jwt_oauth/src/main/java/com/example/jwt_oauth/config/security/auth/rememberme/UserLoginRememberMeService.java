@@ -103,7 +103,7 @@ public class UserLoginRememberMeService extends AbstractRememberMeServices{
 		rememberMe.setLastLogin(new Date());
 
         try{
-            RememberMe updateRememberMe = rememberMeRepository.updateBySeries(rememberMe).get();
+            // RememberMe updateRememberMe = rememberMeRepository.updateBySeries(rememberMe.getToken(), rememberMe.getLastLogin(), rememberMe.getSeries()).get();
 
             String[] rawCookieValues = new String[] {cookieSeries, cookieToken};
             super.setCookie(rawCookieValues, 1000 * 60, request, response);

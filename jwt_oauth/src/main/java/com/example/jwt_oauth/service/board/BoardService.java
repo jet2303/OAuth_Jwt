@@ -1,6 +1,7 @@
 package com.example.jwt_oauth.service.board;
 
 import java.io.File;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -78,9 +80,12 @@ public class BoardService {
         }catch(Exception e){
             e.printStackTrace();
         }
-        boardInfo.setFileInfoList(fileList);
+        
+
+        // boardInfo.setFileInfoList(fileList);
         boardInfo.setBoardStatus(BoardStatus.REGISTERED);
         boardInfo.setUserName(userPrincipal.getUserName());
+        // boardInfo.setUserName(userDetails.getUsername());
         
 
         BoardInfo boardSaved = boardRepository.save(boardInfo);

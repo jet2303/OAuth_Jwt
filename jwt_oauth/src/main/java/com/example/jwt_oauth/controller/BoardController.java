@@ -53,6 +53,7 @@ public class BoardController {
                             , @AuthenticationPrincipal UserPrincipal userPrincipal){
         
         boardService.create(request, files, userPrincipal);
+        // boardService.create(request, files, userPrincipal);
         return "redirect:/page";
     }
 

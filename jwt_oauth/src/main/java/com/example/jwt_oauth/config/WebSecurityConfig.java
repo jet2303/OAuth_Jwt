@@ -112,7 +112,7 @@ public class WebSecurityConfig {
             .formLogin()
                 .permitAll()
                 
-                // .loginPage("/loginPage")
+                .loginPage("/loginPage")
                 
                 .usernameParameter("email")
                 .passwordParameter("password")
