@@ -19,7 +19,8 @@ import lombok.Setter;
 @Setter
 public class RememberMe {
     
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id 
+    // @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String series;
 
     private String token;

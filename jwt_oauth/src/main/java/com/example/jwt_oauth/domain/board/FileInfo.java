@@ -1,6 +1,7 @@
 package com.example.jwt_oauth.domain.board;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -14,7 +15,7 @@ import lombok.ToString;
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "boardInfo")
 public class FileInfo {
 
     @Id
@@ -26,7 +27,7 @@ public class FileInfo {
 
     private String filePath;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
     private BoardInfo boardInfo;
 

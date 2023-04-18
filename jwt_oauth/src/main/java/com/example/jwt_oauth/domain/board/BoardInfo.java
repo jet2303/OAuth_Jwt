@@ -19,6 +19,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+
+/**
+    * @date : 2023-01-23 
+    * @author : AJS
+    * @Description: 작성자 이름 추가
+
+    * @date : 2023-03-27 
+    * @author : AJS
+    * @Description: 작성자 email 추가, 게시글 삭제시 작성자 검증필요
+    **/
+
 @Entity
 @Getter
 @Setter
@@ -32,27 +43,28 @@ public class BoardInfo extends BaseEntity{
     private Long id;
 
     @NotBlank
-    private String title;
+    private String email;
 
-    /**
-    * @date : 2023-01-23 
-    * @author : AJS
-    * @Description: 작성자 이름 추가
-    **/
     @NotBlank
     private String userName;
+
+    @NotBlank
+    private String title;
 
     private String content;
 
     @Enumerated(EnumType.STRING)
     private BoardStatus boardStatus;
 
-    // 양방향 말고 단방향으로 수정해볼것.
-    @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    
+    // @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER)
     private List<FileInfo> fileInfoList = new ArrayList<>();
 
     public static class BoardInfoBuilder{
         private Long id;
+
+        private String email;
 
         private String userName;
         
@@ -105,6 +117,8 @@ public class BoardInfo extends BaseEntity{
 
     public BoardInfo(BoardInfoBuilder boardInfoBuilder){
         this.id = boardInfoBuilder.id;
+        this.email = boardInfoBuilder.email;
+        this.userName = boardInfoBuilder.userName;
         this.title = boardInfoBuilder.title;
         this.content = boardInfoBuilder.content;
         this.boardStatus = boardInfoBuilder.boardStatus;

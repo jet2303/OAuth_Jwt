@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko" 
+        xmlns:th="http://www.thymeleaf.org" 
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" 
+        layout:decorate="~{newBoard/layout/default_layout}">
+
+
+	<th:block layout:fragment="content">
+		<div class="card-content">
+			<!-- <form class="form-horizontal form-view" th:object="${board}"> -->
+			<form class="form-horizontal form-view" th:object="${boardDetail}">
+				<div class="form-group">
+					<label for="inp-type-1" class="col-sm-2 control-label"><h4>제목</h4></label>
+					<div class="col-sm-10">
+						<p class="form-control" th:text="*{title}"></p>
+					</div>
+				</div>
+			
+				<div class="form-group">
+					<label for="inp-type-2" class="col-sm-2 control-label"><h4>이름</h4></label>
+					<div class="col-sm-10">
+						<p class="form-control" th:text="${userName}"></p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="inp-type-5" class="col-sm-2 control-label"><h4>등록일</h4></label>
+					<div class="col-sm-10">
+						<p class="form-control" th:text="*{#temporals.format( createdDate, 'yyyy-MM-dd' )}"></p>
+					</div>
+				</div> 
+
+				<div class="form-group">
+					<label for="inp-type-5" class="col-sm-2 control-label"><h4>내용</h4></label>
+					<div class="col-sm-10">
+						<p class="form-control" th:text="*{content}"></p>
+					</div>
+				</div>
+				<br>
+				<div class="form-group" th:if="${not #lists.isEmpty( boardDetail.fileList )}">
+					<label for="inp-type-5" class="col-sm-2 control-label"><h4>첨부파일</h4></label>
+					<div class="form-group" th:each="row : *{fileList}">
+						<div class="col-sm-10">
+							<p class="form-control" th:text="${row.fileName}"></p>		
+						</div>
+					</div>
+				</div>
+
+			</form>
+
+			<div class="btn_wrap text-left">
+				
+				<a th:href="@{/boardPage/page}" class="btn btn-default waves-effect waves-light" style="float: right; background-color: dimgray;" >뒤로가기</a>
+				<!-- <a th:href="@{/boardPage/write( id=${boardDetail.id} )}" class="btn btn-primary waves-effect waves-light">수정하기</a> -->
+				
+				<form th:action="@{/boardPage/write/{id} (id=${boardDetail.id})}" th:object="${boardDetail}" method="get" style="float: right;">
+					<!-- <input type="hidden" name="_method" value="put"> -->
+					<!-- <input type="hidden" th:field="*{id}">
+					<input type="hidden" th:field="*{title}">
+					<input type="hidden" th:field="*{content}">
+					<input type="hidden" th:field="*{createdBy}">
+					<input type="hidden" th:field="*{registeredAt}">
+					<input type="hidden" th:field="*{status}"> -->
+					<button type="submit" class="btn btn-primary waves-effect waves-light " style="margin-right: 5px">수정하기</button>
+				</form>
+
+				<form th:action="@{/boardPage/{id} (id=${boardDetail.id})}" method="post" style="float: right; margin-right: 5px;">
+					<input type="hidden" name="_method" value="DELETE">
+					<button type="submit" class="btn btn-danger waves-effect waves-light" onclick="alert('삭제되었습니다.')">삭제하기</button>
+				</form>
+				
+			</div> 
+			
+		</div>
+		<!-- /.card-content -->
+	</th:block>
+
+
+</html>

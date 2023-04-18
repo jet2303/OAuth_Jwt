@@ -4,31 +4,129 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{newBoard/layout/default_layout}">
 
+
 <div layout:fragment="content" class="content">
     <article>
         <div class="container" role="main">
-            <div class="mb-3">
-                <label for="boardTitle">제목</label>
-                <input type="text" class="form-control" id="boardTitle" name="boardTitle" placeholder="제목을 입력해 주세요">
-            </div>
-            <br>
-            <div class="mb-3">
-                <label for="reg_id">작성자</label>
-                <!-- <input type="text" class="form-control" id="reg_id" name="regId"  th:value="test" readonly> -->
-                <input type="text" class="form-control" id="userName" name="userName"  th:value="${userName}" readonly>
-            </div>
-            <br>
-            <div class="mb-3">
-                <label for="boardContent">내용</label>
-                <textarea class="form-control" rows="5" id="boardContent" name="boardContent" placeholder="내용을 입력해 주세요"></textarea>
-            </div>
-            <br>
-            <br>
-            <div>
-                <button onclick="registerAction()" type="button" class="btn btn-sm btn-primary" id="btnSave">저장</button>
-                <button onclick="location.href='/'" type="button" class="btn btn-sm btn-primary" id="btnList">목록</button>
-            </div>
+            <form class="form-horizontal" name="contentName" th:action="@{/board/create}" th:object="${boardApiResponse}" 
+                        method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="boardTitle">제목</label>
+                    <input type="text" class="form-control" id="boardTitle" name="boardTitle" th:field="*{title}" placeholder="제목을 입력해 주세요">
+                </div>
+                <br>
+                <div class="mb-3">
+                    <label for="reg_id">작성자</label>
+                    <!-- <input type="text" class="form-control" id="reg_id" name="regId"  th:value="test" readonly> -->
+                    <input type="text" class="form-control" id="userName" name="userName"  th:value="${userName}" readonly>
+                </div>
+                <br>
+                <div class="mb-3">
+                    <label for="boardContent">내용</label>
+                    <textarea class="form-control" rows="5" id="boardContent" name="boardContent" th:field="*{content}" placeholder="내용을 입력해 주세요"></textarea>
+                </div>
+                <br>
+                <!-- <div data-name="fileDiv" class="form-group filebox bs3-primary">
+					<label for="file_0" class="col-sm-2 control-label">파일1</label>
+					<div class="col-sm-10">
+						<input type="text" class="upload-name" value="파일 찾기" readonly />
+						<label for="file_0" class="control-label">찾아보기</label>
+						<input type="file" name="files" id="file_0" class="upload-hidden" onchange="changeFilename(this)" />
+					
+						
+					</div>
+				</div> -->
+                <div class="custom-file" id="custom-file-div">
+                    <input type="file" id="customFile" name="uploadfiles" th:onchange="fileUpload(this)" multiple>
+                    <br>
+
+                    <!-- <input type="text" id="uploadListText" class="form-control" name="fileListText" disabled=""> -->
+                    <div>
+                        <div id="uploadListText">
+
+                        </div>
+                    </div>
+                    <!-- <label for="customFile"></label> -->
+                    <script th:inline="javascript">
+                        function fileUpload(fis){
+                            // C:\fakepath\temp.txt
+                            // alert(fis.value);
+                            
+                            var fileInput = document.getElementById("customFile");
+                            var files = fileInput.files;
+                            var file;
+                            var outputFileList = [];
+                            // 첨부파일을 + 버튼으로 3개까지만 받을수있게 수정.
+                            if(files.length > 3){
+                                alert("첨부파일은 3개까지만.");
+                                document.getElementById("uploadListText").innerText = "";
+                                return;
+                            }
+                            for(var i=0; i<files.length; i++){
+                                file = files[i];
+                                outputFileList.push(file.name);
+                            }
+                            document.getElementById("uploadListText").innerText = outputFileList;
+                        }
+                    </script>
+
+                    <!-- 파일추가 & 리스트 등록 스크립트
+                    function fileCheck(e) {
+                        var files = e.target.files;
+                        
+                        // 파일 배열 담기
+                        var filesArr = Array.prototype.slice.call(files);
+                        
+                        // 파일 개수 확인 및 제한
+                        if (fileCount + filesArr.length > totalCount) {
+                        $.alert('파일은 최대 '+totalCount+'개까지 업로드 할 수 있습니다.');
+                        return;
+                        } else {
+                            fileCount = fileCount + filesArr.length;
+                        }
+                        
+                        // 각각의 파일 배열담기 및 기타
+                        filesArr.forEach(function (f) {
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            content_files.push(f);
+                            $('#articlefileChange').append(
+                                '<div id="file' + fileNum + '" onclick="fileDelete(\'file' + fileNum + '\')">'
+                                + '<font style="font-size:12px">' + f.name + '</font>'  
+                                + '<img src="/img/icon_minus.png" style="width:20px; height:auto; vertical-align: middle; cursor: pointer;"/>' 
+                                + '<div/>'
+                            );
+                            fileNum ++;
+                        };
+                        reader.readAsDataURL(f);
+                        });
+                        console.log(content_files);
+                        //초기화 한다.
+                        $("#input_file").val("");
+                    } -->
+                    
+                </div>
+    
+                <br>
+                <br>
+                <div>
+                    <!-- <button onclick="registerAction()" type="button" class="btn btn-sm btn-primary" id="btnSave">저장</button> -->
+                    <button type="submit" class="btn btn-sm btn-primary" id="btnSave">저장</button>
+                    <button onclick="location.href='/'" type="button" class="btn btn-sm btn-primary" id="btnList">목록</button>
+                </div>
+            </form>
+            
+            
         </div>
     </article>
 </div>
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script type="text/javascript" th:src="@{/jwt_oauth/src/main/resources/static/newBoard/js/custom.js}"></script>
+
 </html>

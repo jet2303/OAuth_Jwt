@@ -23,12 +23,12 @@ public abstract class BaseEntity {
     @CreatedDate
     private LocalDateTime createdDate;
 
-    // @CreatedBy
-    // private String createdBy;
+    @CreatedBy
+    private String createdBy;
 
     @LastModifiedDate
     private LocalDateTime modifiedDate;
 
-    // @LastModifiedBy
-    // private String modifiedBy;
+    @LastModifiedBy
+    private String modifiedBy;
 }

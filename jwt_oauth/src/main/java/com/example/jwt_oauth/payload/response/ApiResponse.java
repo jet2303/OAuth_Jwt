@@ -6,17 +6,20 @@ import lombok.ToString;
 
 @Data
 @ToString
-public class ApiResponse {
+public class ApiResponse<T> {
     
     private boolean check = false;
 
     private Object information;
 
+    private T newInformation;
+
     public ApiResponse(){};
 
     @Builder
-    public ApiResponse(boolean check, Object information){
+    public ApiResponse(boolean check, Object information, T newInformation){
         this.check = check;
         this.information = information;
+        this.newInformation = newInformation;
     }
 }

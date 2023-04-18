@@ -67,40 +67,44 @@ public class PageController {
         System.out.println(userPrincipal.toString());
     }
 
-    @GetMapping(value = "/menutest")
-    public String menutest(){
-        return "menu/index";
-    }
+    // @GetMapping(value = "/menutest")
+    // public String menutest(){
+    //     return "menu/index";
+    // }
 
-    @GetMapping(value = "/list")
-    public ModelAndView boardlist(@CurrentUser UserPrincipal userPrincipal){
-        return new ModelAndView("/page/list")
-                    .addObject("boardList", boardService.getList()); 
-    }
+    /**
+    * @date : 2023-03-16 오후 2:07
+    * @author : AJS
+    * @Description: view 리뉴얼로 이전에 쓰던 list, write 페이지 주석처리
+    **/
 
-    @GetMapping(value="/write")
-    public ModelAndView write(){
-        return new ModelAndView("/page/write")
-                    .addObject("boardApiResponse", new BoardApiResponse())
-                    .addObject("uploadfiles", new FileInfo());
-    }
+    // @GetMapping(value = "/list")
+    // public ModelAndView boardlist(@CurrentUser UserPrincipal userPrincipal){
+    //     return new ModelAndView("/page/list")
+    //                 .addObject("boardList", boardService.getList()); 
+    // }
+
+    // @GetMapping(value="/write")
+    // public ModelAndView write(){
+    //     return new ModelAndView("/page/write")
+    //                 .addObject("boardApiResponse", new BoardApiResponse())
+    //                 .addObject("uploadfiles", new FileInfo());
+    // }
 
     @GetMapping("/page")
     public ModelAndView findPage(@PageableDefault(size = 10, page = 0, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
     
-        // return new ModelAndView("/page/list")
-        //                     .addObject("pagenation", boardService.search(pageable));
         Header<List<BoardApiResponse>> result = boardService.search(pageable);
         List<BoardApiResponse> boardApiResponses = result.getData();
         Pagenation pagenation = result.getPagenation();
-        return new ModelAndView("/page/list")
+        return new ModelAndView("/newBoard/page/list")
                             .addObject("boardList", boardApiResponses)
                             .addObject("pagenation", pagenation);
     }
 
     // new Page
-    @GetMapping(value = "/write1")
-    public ModelAndView write1(){
+    @GetMapping(value = "/write")
+    public ModelAndView write(){
         Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserPrincipal userPrincipal = (UserPrincipal)authentication;
 
@@ -110,9 +114,8 @@ public class PageController {
                     .addObject("userName", userPrincipal.getUserName());
     }
 
-    @GetMapping(value = "/list1")
-    public ModelAndView boardlist1(@CurrentUser UserPrincipal userPrincipal){
-        return new ModelAndView("/newBoard/page/list")
-                    .addObject("boardList", boardService.getList()); 
-    }
+    
+
+    
+
 }

@@ -27,34 +27,49 @@
                             <input type="checkbox" id="allCheckBox" class="chk">
                             </label>
                         </th>
-                        <th>번호</th>
-                        <th>제목</th>
-                        <th>작성자</th>
-                        <th>날짜</th>
-                        <th>조회수</th>
-                        <th>파일유무</th>
+                        <th class="text-center">번호</th>
+                        <th class="text-center">제목</th>
+                        <th class="text-center">작성자</th>
+                        <th class="text-center">날짜</th>
+                        <th class="text-center">조회수</th>
+                        <th class="text-center">첨부파일</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     <tr>
-                        <td>
-                            <label class="checkbox-inline">
-                                <input type="checkbox" class="chk" name="chk" value="">
-                            </label>
-                        <td>1</td>
-                        <td><a href=""></a>제목입니다.</td>
-                        <td>작성자</td>
-                        <td>2022.08.01</td>
-                        <td>1</td>
-                        <td>이미지</td>
+                        <tr th:if="${not #lists.isEmpty( boardList )}" th:each="row : ${boardList}">
+                            <td>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="chk" name="chk" value="">
+                                </label>
+                            </td>
+                        
+                            <td class="text-center" scope="row" th:text="${row.id}">
+                                <td class="text-left">
+                                    <a th:href="@{/board/read/{id} (id=${row.id} )}" th:text="${row.title}"></a></td>
+                                <td class="text-center" th:text="${row.userName}"></td>	
+                                <td class="text-center" th:text="${#temporals.format( row.createdDate, 'yyyy-MM-dd   HH:mm:ss' )}"></td>
+                                <td class="text-center" th:text="0"></td>
+                                <td class="text-center" 
+                                    th:if="${#lists.isEmpty(row.fileList)}" th:text="X"></td>
+                                <td class="text-center" 
+                                    th:unless="${#lists.isEmpty(row.fileList)}" th:text="O"></td>
+                            </td>
+                            
+                            <!-- <td th:text="${row.createdDate}"></td> -->
+                        </tr>
+                        
+                        <tr th:unless="${not #lists.isEmpty( pagenation )}">
+                            <td colspan="5">조회된 결과가 없습니다.</td>
+                        </tr>
                     </tr>
                 </tbody>
             </table>
             <br>
             <!-- ADMIN 권한일경우에만 글쓰기 권한있음 -->
             <div class="d-flex justify-content-end">
-                <a class="btn btn-danger">글삭제</a>
+                <a class="btn btn-danger" style="margin-right: 5px;">글삭제</a>
                 <a href="/write" class="btn btn-primary">글쓰기</a>
             </div>
             <br>

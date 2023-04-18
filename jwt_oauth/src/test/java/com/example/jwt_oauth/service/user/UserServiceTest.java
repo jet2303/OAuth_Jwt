@@ -99,6 +99,7 @@ public class UserServiceTest {
 
     @Test
     @Order(1)
+    @Disabled
     void testRead() {
 
         

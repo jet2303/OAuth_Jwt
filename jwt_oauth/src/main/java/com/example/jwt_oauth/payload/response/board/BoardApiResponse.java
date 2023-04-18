@@ -27,10 +27,13 @@ public class BoardApiResponse {
     private Long id;
 
     @NotBlank
-    private String title;
+    private String email;
 
     @NotBlank
     private String userName;
+
+    @NotBlank
+    private String title;
 
     @NonNull
     private String content;
@@ -38,8 +41,10 @@ public class BoardApiResponse {
     @NotBlank
     private BoardStatus boardStatus;
 
+    @NotBlank
     private LocalDateTime createdDate;
 
+    @NotBlank
     private String createBy;
 
     private LocalDateTime modifiedDate;
@@ -54,11 +59,25 @@ public class BoardApiResponse {
         this.content = boardInfo.getContent();
         this.boardStatus = boardInfo.getBoardStatus();
         
-        // this.createBy = boardInfo.getCreatedBy();
+        this.createBy = boardInfo.getCreatedBy();
         this.createdDate = boardInfo.getCreatedDate();
-        // this.modifiedBy = boardInfo.getModifiedBy();
+        this.modifiedBy = boardInfo.getModifiedBy();
         this.modifiedDate = boardInfo.getModifiedDate();
 
         this.fileList = fileList;
+    }
+
+    public BoardApiResponse(BoardInfo boardInfo){
+        this.id = boardInfo.getId();
+        this.email = boardInfo.getEmail();
+        this.userName = boardInfo.getUserName();
+        this.title = boardInfo.getTitle();
+        this.content = boardInfo.getContent();
+        this.boardStatus = boardInfo.getBoardStatus();
+        
+        this.createBy = boardInfo.getCreatedBy();
+        this.createdDate = boardInfo.getCreatedDate();
+        this.modifiedBy = boardInfo.getModifiedBy();
+        this.modifiedDate = boardInfo.getModifiedDate();
     }
 }

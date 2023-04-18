@@ -26,6 +26,8 @@ public class CreateBoardRequest {
 
     private String title;
 
+    private String email;
+
     private String userName;
 
     private String content;
