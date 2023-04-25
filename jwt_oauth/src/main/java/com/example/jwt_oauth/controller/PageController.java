@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -96,13 +97,22 @@ public class PageController {
         UserPrincipal userPrincipal = (UserPrincipal)authentication;
 
         return new ModelAndView("/newBoard/page/write")
-                    .addObject("boardApiResponse", new BoardApiResponse())
-                    .addObject("uploadfiles", new FileInfo())
-                    .addObject("userName", userPrincipal.getUserName());
+                            .addObject("boardApiResponse", new BoardApiResponse())
+                            .addObject("uploadfiles", new FileInfo())
+                            .addObject("userName", userPrincipal.getUserName());
     }
 
-    
+    @GetMapping(value = "/update/{idx}")
+    public ModelAndView update(@PathVariable(value = "idx")Long id){
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserPrincipal userPrincipal = (UserPrincipal)authentication;
 
-    
+        Header<BoardApiResponse> response = boardService.read(id);
+
+        return new ModelAndView("/newBoard/page/update")
+                            .addObject("boardApiResponse", response.getData())
+                            .addObject("uploadfiles", response.getData().getFileList())
+                            .addObject("userName", userPrincipal.getUserName());
+    }
 
 }

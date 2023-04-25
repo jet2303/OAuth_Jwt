@@ -161,13 +161,14 @@ public class BoardServiceTest {
     @WithMockUser(username = "test11@naver.com", password = "1234", roles = {"USER"})
     void testDelete() throws Exception{
         
-        boardService.create(request, mFiles, userPrincipal);
+        Header<BoardApiResponse> resCreate = boardService.create(request, mFiles, userPrincipal);
 
-        Header<List<BoardApiResponse>> response = boardService.getBoardList();
-        // assertEquals(response.getData().size(), 1);
+
+        // Header<List<BoardApiResponse>> response = boardService.getBoardList();
+        
         assertEquals(boardService.getBoardList().getData().size(), 1);
         
-        boardService.delete(userPrincipal, 1L);
+        boardService.delete(userPrincipal, resCreate.getData().getId());
         
         
         // boardService.getBoardList().getData().forEach(board -> log.info("board : {}", board.getId())); 
@@ -189,7 +190,7 @@ public class BoardServiceTest {
         // Header<List<BoardApiResponse>> list = boardService.getBoardList();
 
         // assertEquals(list.getData().size(), 1);
-        assertEquals(boardService.getBoardList(), 1);
+        assertEquals(boardService.getBoardList().getData().size(), 1);
     }
 
     @Test
@@ -214,10 +215,10 @@ public class BoardServiceTest {
     @WithMockUser(username = "test@naver.com", password = "1234", roles = {"USER","ADMIN"})
     void testUpdate() throws IOException{
         Header<BoardApiResponse> beforeData = boardService.create(request, mFiles, userPrincipal);
-
-        assertEquals(boardService.read(1L).getData().getTitle(), "title");
-        assertEquals(boardService.read(1L).getData().getContent(), "content");
-        assertEquals(boardService.read(1L).getData().getFileList().size(), 2);
+        log.info("========================update====================== {}", beforeData.getData().getId());
+        assertEquals(boardService.read(beforeData.getData().getId()).getData().getTitle(), "title");
+        assertEquals(boardService.read(beforeData.getData().getId()).getData().getContent(), "content");
+        assertEquals(boardService.read(beforeData.getData().getId()).getData().getFileList().size(), 2);
 
         mFiles.clear();
 
@@ -246,9 +247,9 @@ public class BoardServiceTest {
 
         boardService.update(request, mFiles, beforeData.getData().getId(), userPrincipal);
 
-        assertEquals(boardService.read(1L).getData().getTitle(), "update title");
-        assertEquals(boardService.read(1L).getData().getContent(), "update content");
-        assertEquals(boardService.read(1L).getData().getFileList().size(), 3);
+        assertEquals(boardService.read(beforeData.getData().getId()).getData().getTitle(), "update title");
+        assertEquals(boardService.read(beforeData.getData().getId()).getData().getContent(), "update content");
+        assertEquals(boardService.read(beforeData.getData().getId()).getData().getFileList().size(), 3);
     }
 
     // public Header<BoardApiResponse> test() throws Exception{
