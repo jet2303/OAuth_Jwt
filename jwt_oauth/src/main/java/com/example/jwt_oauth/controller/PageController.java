@@ -78,19 +78,6 @@ public class PageController {
     * @Description: view 리뉴얼로 이전에 쓰던 list, write 페이지 주석처리
     **/
 
-    // @GetMapping(value = "/list")
-    // public ModelAndView boardlist(@CurrentUser UserPrincipal userPrincipal){
-    //     return new ModelAndView("/page/list")
-    //                 .addObject("boardList", boardService.getList()); 
-    // }
-
-    // @GetMapping(value="/write")
-    // public ModelAndView write(){
-    //     return new ModelAndView("/page/write")
-    //                 .addObject("boardApiResponse", new BoardApiResponse())
-    //                 .addObject("uploadfiles", new FileInfo());
-    // }
-
     @GetMapping("/page")
     public ModelAndView findPage(@PageableDefault(size = 10, page = 0, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
     

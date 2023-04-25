@@ -2,6 +2,10 @@ package com.example.jwt_oauth.repository.board;
 
 
 
+
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +23,6 @@ public interface FileInfoRepository extends JpaRepository<FileInfo, Long>{
     @Query(value = "DELETE FROM FileInfo WHERE boardInfo=:boardInfo")
     void deleteByBoardInfo(@Param("boardInfo") BoardInfo boardInfo);
     
+    Optional<List<FileInfo>> findByBoardInfo(BoardInfo boardInfo);
+
 }

@@ -35,6 +35,7 @@ import lombok.ToString;
 @Setter
 // @ToString(exclude = "fileInfoList")
 @ToString
+// @DynamicUpdate   //변경된 필드만 업데이트
 public class BoardInfo extends BaseEntity{
     
     @Id 
@@ -60,6 +61,7 @@ public class BoardInfo extends BaseEntity{
     // @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER)
     private List<FileInfo> fileInfoList = new ArrayList<>();
+
 
     public static class BoardInfoBuilder{
         private Long id;
@@ -107,6 +109,11 @@ public class BoardInfo extends BaseEntity{
 
         public BoardInfoBuilder fileInfoList(List<FileInfo> fileInfoList){
             this.fileInfoList.addAll(fileInfoList);
+            return this;
+        }
+
+        public BoardInfoBuilder email(String email){
+            this.email = email;
             return this;
         }
 

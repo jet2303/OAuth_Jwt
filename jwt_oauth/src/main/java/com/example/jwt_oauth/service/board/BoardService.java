@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.jwt_oauth.config.security.token.CurrentUser;
@@ -45,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BoardService {
 
-    private final UserRepository userRepository;
+    
     private final BoardRepository boardRepository;
     private final FileInfoRepository fileInfoRepository;
 
@@ -56,28 +58,14 @@ public class BoardService {
     * @author : AJS
     * @Description: 파라미터 boardInfo → BoardApiResponse로 변경
     **/
-    public Header<BoardApiResponse> create(final CreateBoardRequest request, final List<MultipartFile> files
-                                            , UserPrincipal userPrincipal){
-        BoardInfo boardInfo = requestToBoard(request);
+
+    private BoardInfo setBoardInfo(UserPrincipal userPrincipal, BoardInfo boardInfo, final List<MultipartFile> files){
         
-        
-        ////        boardinfo 저장하는것 메소드
         boardInfo.setBoardStatus(BoardStatus.REGISTERED);
-        // boardInfo.setUserName(userPrincipal.getUserName());
         boardInfo.setEmail(userPrincipal.getEmail());
-
+        boardInfo.setUserName(userPrincipal.getUserName());
         
-        // String userName = userRepository.findByEmail(userPrincipal.getEmail())
-        //                                             .orElseThrow(() -> new NoSuchElementException("no search user"))
-        //                                             .getName();
-
-        ////        username 끌어오는 서비스 변경
-        String userName = "jsan";
-        boardInfo.setUserName(userName);
-        BoardInfo boardSaved = boardRepository.save(boardInfo);
-
-        
-        ////        파일저장 메소드 
+        boardRepository.save(boardInfo);
         try{
             List<FileInfo> fileList = new ArrayList<>();
 
@@ -89,31 +77,40 @@ public class BoardService {
                     FileInfo fileInfo = new FileInfo.FileInfoBuilder()
                                                     .fileName(fileName)
                                                     .filePath("/files/" + fileName)
-                                                    .boardInfo(boardSaved)
+                                                    .boardInfo(boardInfo)
                                                     .build();
                     fileList.add(fileInfo);
                 }
                 
-                fileInfoRepository.saveAll(fileList);
-                return Header.OK(new BoardApiResponse(boardSaved, fileList));
+                fileInfoRepository.saveAll(fileList);    
             }
-                
+            boardInfo.setFileInfoList(fileList);
         }catch(Exception e){
             e.printStackTrace();
         }
-        
-        
-        // log.info("{}", boardRepository.findById(1L).get());
-        // log.info("{}", fileInfoRepository.findById(1L).get());
-        
-        return Header.OK(new BoardApiResponse(boardSaved));
+        return boardInfo;
+    }
+
+    public Header<BoardApiResponse> create(final CreateBoardRequest request, final List<MultipartFile> files
+                                            , UserPrincipal userPrincipal){
+        BoardInfo boardInfo = requestToBoard(request, userPrincipal);        
+
+        BoardInfo boardSaved = setBoardInfo(userPrincipal, boardInfo, files);
+
+        if(!files.isEmpty()){
+            //boardapiresponse builder로 바꿀수있진않나??
+            return Header.OK(new BoardApiResponse(boardSaved, boardSaved.getFileInfoList()));
+
+        }else{
+            return Header.OK(new BoardApiResponse(boardSaved));
+        }
+
     }
    
 
     public Header<BoardApiResponse> read(final Long id){
-
-        BoardInfo boardInfo = boardRepository.findById(id).get();
-        // return Header.ERROR();
+        BoardInfo boardInfo = boardRepository.findById(id).orElseThrow(() -> new NoSuchElementException("not found board"));
+        
         
         return Header.OK(BoardApiResponse.builder()
                                             .id(boardInfo.getId())
@@ -129,27 +126,55 @@ public class BoardService {
                                             .build());
     }
 
-    // 인증관련 로직 추가할것.
-    public Header<BoardApiResponse> update(final CreateBoardRequest request, final List<MultipartFile> files, final Long id){
+    public Header<List<BoardApiResponse>> getBoardList(){
+        
+        List<Boardlist> boardList = boardRepository.findByBoardStatus(BoardStatus.REGISTERED)
+                                                    .orElseThrow( () -> new RuntimeException("등록된 게시글이 없습니다."));
+
+        List<BoardApiResponse> boardApiResponses = new ArrayList<>();
+        if(boardList.size()<1){
+            return Header.OK(boardApiResponses);
+        }        
+        
+        boardApiResponses = boardList.stream().map(board -> response(board))
+                                                 .collect(Collectors.toList());
+
+        return Header.OK(boardApiResponses);
+    }
+    
+    // 권한 여부에 따른 수정 유무 로직 추가할것.
+    @Transactional
+    public Header<BoardApiResponse> update(final CreateBoardRequest request, final List<MultipartFile> files, final Long id
+                                                ,UserPrincipal userPrincipal){
 
         //// boardInfo 수정 메소드
         BoardInfo boardInfo = boardRepository.findById(id).get();
+        List<FileInfo> oldFileList = fileInfoRepository.findByBoardInfo(boardInfo).get();
+
         boardInfo.setTitle(request.getTitle());
         boardInfo.setContent(request.getContent());
-        if(emptyFileChk(files)){
+        boardInfo.getFileInfoList().clear();
 
+        if(emptyFileChk(files)){
+            //// 수정필요
             fileInfoRepository.deleteByBoardInfo(boardInfo);
             
             List<FileInfo> fileList = files.stream()
                                             .map(file -> multiPartFileToFileInfo(file, boardInfo))
                                             .collect(Collectors.toList());
-            boardInfo.setFileInfoList(fileList);
+            
+            ////boardInfo.setFileList 이런식으로 추가하는 방법 > 연관관계 수정       
+            fileInfoRepository.saveAll(fileList);
+            
+            // BoardInfo updateBoard = requestToBoard(request, userPrincipal);
+            
         }else{
             boardInfo.setFileInfoList(null);
         }
-        
+
         return Header.OK(BoardApiResponse.builder()
                                             .id(boardInfo.getId())
+                                            .email(boardInfo.getEmail())
                                             .userName(boardInfo.getUserName())
                                             .title(boardInfo.getTitle())
                                             .content(boardInfo.getContent())
@@ -162,59 +187,51 @@ public class BoardService {
                                             .build());
     }
 
-    public Header<ApiResponse> delete(UserPrincipal userPrincipal, final Long id){
-
+    
+    // public Header<ApiResponse> delete(UserPrincipal userPrincipal, final Long id){
+    @Transactional
+    public void delete(UserPrincipal userPrincipal, final Long id){
         
-        // log.info("{} ",userPrincipal.getAuthorities());
-        // log.info("userName : {} / username : {}", userPrincipal.getUserName(), userPrincipal.getUsername());
-
         BoardInfo boardInfo = boardRepository.findById(id).get();
         
-        // 게시글을 작성한 본인, 관리자 제외 삭제 불가.
-        // boardInfo에 있는 useremail, 현재 로그인한 useremail 비교
         if(userPrincipal.getAuthorities().equals("ROLE_ADMIN") || userPrincipal.getUserName().equals(boardInfo.getUserName())){
             
             // delete 로 게시글 비활성화
-            
             boardInfo.setBoardStatus(BoardStatus.UNREGISTERED);
-            return Header.OK(ApiResponse.builder()
-                                    .check(true)
-                                    .newInformation(Message.builder()
-                                                            .message("success delete")
-                                                            .build())
-                                    .build());
+
+            // boardRepository.save(boardInfo);
+
+            // return Header.OK(new BoardApiResponse(boardInfo));
         }
-        return Header.OK(ApiResponse.builder()
-                                    .check(true)
-                                    .newInformation(Message.builder()
-                                                            .message("failed delete")
-                                                            .build())
-                                    .build());
+        // return Header.OK(new BoardApiResponse(boardInfo));
+
+        // 게시글을 작성한 본인, 관리자 제외 삭제 불가.
+        // boardInfo에 있는 useremail, 현재 로그인한 useremail 비교
+        // if(userPrincipal.getAuthorities().equals("ROLE_ADMIN") || userPrincipal.getUserName().equals(boardInfo.getUserName())){
+            
+        //     // delete 로 게시글 비활성화
+            
+        //     boardInfo.setBoardStatus(BoardStatus.UNREGISTERED);
+        //     return Header.OK(ApiResponse.builder()
+        //                             .check(true)
+        //                             .newInformation(Message.builder()
+        //                                                     .message("success delete")
+        //                                                     .build())
+        //                             .build());
+        // }
+        // return Header.OK(ApiResponse.builder()
+        //                             .check(true)
+        //                             .newInformation(Message.builder()
+        //                                                     .message("failed delete")
+        //                                                     .build())
+        //                             .build());
     }
 
-    public Header<List<BoardApiResponse>> getList(){
-        // List<Board> boardList = boardRepository.findAll();
-        List<Boardlist> boardList = boardRepository.findByBoardStatus(BoardStatus.REGISTERED)
-                                                    .orElseThrow( () -> new RuntimeException("등록된 게시글이 없습니다."));
-
-        if(boardList.size()<1){
-            // return new RuntimeException();
-        }
-        List<BoardApiResponse> boardApiResponses = new ArrayList<>();
-
-        // boardList.stream().map( board-> boardApiResponses.add(response(board)));
-        boardApiResponses = boardList.stream().map(board -> response(board))
-                                                 .collect(Collectors.toList());
-
-
-        return Header.OK(boardApiResponses);
-    }
 
     public Header<List<BoardApiResponse>> search(Pageable pageable){
         
         Page<Boardlist> boards = boardRepository.findByBoardStatus(BoardStatus.REGISTERED, pageable)
                                                 .orElseThrow(() -> new RuntimeException("등록된 게시글이 없습니다."));
-                                            
                                             
         List<BoardApiResponse> boardApiResponses = boards.stream().map(board -> response(board))
                                                                     .collect(Collectors.toList());
@@ -249,8 +266,9 @@ public class BoardService {
     }
 
 
-    private BoardInfo requestToBoard(CreateBoardRequest request){
+    private BoardInfo requestToBoard(CreateBoardRequest request, UserPrincipal userPrincipal){
         BoardInfo boardInfo = new BoardInfo.BoardInfoBuilder()
+                                            .email(userPrincipal.getEmail())
                                             .userName(request.getUserName())
                                             .title(request.getTitle())
                                             .content(request.getContent())
@@ -294,7 +312,6 @@ public class BoardService {
                                             .filePath("/files/" + fileName)
                                             .boardInfo(boardInfo)
                                             .build();
-
             return fileInfo;
         }catch(IOException ioe){
             ioe.printStackTrace();
@@ -303,20 +320,5 @@ public class BoardService {
         return null;
     }
 
-    // private BoardInfoDto boardToDto(BoardInfo boardInfo){
-    //     BoardInfoDto dto = new BoardInfoDtoBuilder().title(boardInfo.getTitle())
-    //                                                 .content(boardInfo.getContent())
-    //                                                 .boardStatus(boardInfo.getBoardStatus().toString())
-    //                                                 // .fileName(boardInfo.)
-    //                                                 .build();
-    //     return dto;
-    // }
 
-    // private FileInfo dtoToFile(BoardInfoDto dto){
-    //     FileInfo fileInfo = new FileInfo.FileInfoBuilder()
-    //                                     .fileName(dto.getFileName())
-    //                                     .filePath(dto.getFilePath())
-    //                                     .build();
-    //     return fileInfo;                                       
-    // }
 }

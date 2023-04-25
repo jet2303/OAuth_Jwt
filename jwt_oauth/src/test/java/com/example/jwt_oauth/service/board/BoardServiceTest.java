@@ -20,6 +20,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,25 +39,25 @@ import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.jwt_oauth.config.security.token.CurrentUser;
 import com.example.jwt_oauth.config.security.token.UserPrincipal;
 import com.example.jwt_oauth.controller.BoardController;
 import com.example.jwt_oauth.domain.board.BoardInfo;
+import com.example.jwt_oauth.domain.board.BoardStatus;
+import com.example.jwt_oauth.domain.board.FileInfo;
 import com.example.jwt_oauth.domain.user.Role;
 import com.example.jwt_oauth.payload.Header;
 import com.example.jwt_oauth.payload.request.auth.SignInRequest;
 import com.example.jwt_oauth.payload.request.auth.SignUpRequest;
 import com.example.jwt_oauth.payload.request.board.CreateBoardRequest;
-import com.example.jwt_oauth.payload.response.ApiResponse;
-import com.example.jwt_oauth.payload.response.Message;
 import com.example.jwt_oauth.payload.response.auth.AuthResponse;
 import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
 import com.example.jwt_oauth.repository.board.BoardRepository;
-import com.example.jwt_oauth.repository.board.FileInfoRepository;
 import com.example.jwt_oauth.service.user.auth.AuthService;
-import com.nimbusds.oauth2.sdk.Request;
+
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,9 +72,6 @@ public class BoardServiceTest {
 
     @Autowired
     private BoardRepository boardRepository;
-
-    @Autowired
-    private FileInfoRepository fileInfoRepository;
 
     @Autowired
     private AuthService authService;
@@ -112,6 +110,7 @@ public class BoardServiceTest {
                                     .title("title")
                                     .content("content")
                                     .userName(userPrincipal.getUserName())
+                                    .boardStatus(BoardStatus.REGISTERED)
                                     .build();
 
         // boardService.create(request, mFiles, userPrincipal);
@@ -141,6 +140,7 @@ public class BoardServiceTest {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Test
+    @DisplayName(value = "create")
     // @Order(1)
     @WithMockUser(username = "test@naver.com", password = "1234", roles = {"USER","ADMIN"})
     public void testCreate() throws Exception{
@@ -150,17 +150,28 @@ public class BoardServiceTest {
         Header<BoardApiResponse> response = boardService.create(request, mFiles, userPrincipal);
         
         // then
-        // log.info("{}", boardRepository.findAll());
+        
         Header<BoardApiResponse> response2 = boardService.read(response.getData().getId());
-        log.info("boardRepository : {}", boardRepository.findById(response.getData().getId()));
+        
         assertEquals(response.getData().getFileList().size() , response2.getData().getFileList().size());
     }
 
     @Test
+    @DisplayName(value = "delete")
     @WithMockUser(username = "test11@naver.com", password = "1234", roles = {"USER"})
     void testDelete() throws Exception{
         
-        // assertEquals(result.getData().getNewInformation(), null);
+        boardService.create(request, mFiles, userPrincipal);
+
+        Header<List<BoardApiResponse>> response = boardService.getBoardList();
+        // assertEquals(response.getData().size(), 1);
+        assertEquals(boardService.getBoardList().getData().size(), 1);
+        
+        boardService.delete(userPrincipal, 1L);
+        
+        
+        // boardService.getBoardList().getData().forEach(board -> log.info("board : {}", board.getId())); 
+        assertEquals(boardService.getBoardList().getData().size(), 0);
     }
 
     // private void createAdmin(String email){
@@ -170,31 +181,56 @@ public class BoardServiceTest {
     // }
 
     @Test
+    @DisplayName(value = "GetList")
     @WithMockUser(username = "test@naver.com", password = "1234", roles = {"USER","ADMIN"})
     void testGetList() {
         boardService.create(request, mFiles, userPrincipal);
 
-        Header<List<BoardApiResponse>> list = boardService.getList();
+        // Header<List<BoardApiResponse>> list = boardService.getBoardList();
 
-        assertEquals(list.getData().size(), 1);
+        // assertEquals(list.getData().size(), 1);
+        assertEquals(boardService.getBoardList(), 1);
     }
 
     @Test
+    @DisplayName(value = "read")
+    @WithMockUser(username = "test@naver.com", password = "1234", roles = {"USER"})
+    void testRead(){
+
+        boardService.create(request, mFiles, userPrincipal);
+
+        Header<BoardApiResponse> response = boardService.read(1L);
+        String content = response.getData().getContent();
+        String title = response.getData().getTitle();
+        List<FileInfo> fList = response.getData().getFileList();
+
+        assertEquals(title, "title");
+        assertEquals(content, "content");
+        assertEquals(fList.size(), 2);
+    }
+
+    @Test
+    @DisplayName(value = "Update")
     @WithMockUser(username = "test@naver.com", password = "1234", roles = {"USER","ADMIN"})
     void testUpdate() throws IOException{
         Header<BoardApiResponse> beforeData = boardService.create(request, mFiles, userPrincipal);
+
+        assertEquals(boardService.read(1L).getData().getTitle(), "title");
+        assertEquals(boardService.read(1L).getData().getContent(), "content");
+        assertEquals(boardService.read(1L).getData().getFileList().size(), 2);
+
         mFiles.clear();
 
         MockMultipartFile file1 = new MockMultipartFile("temp1",
-                                                "temp.txt",
+                                                "temp1.txt",
                                                 "text/html; charset=utf-8",
                                                 new FileInputStream("D:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\temp.txt"));
         MockMultipartFile file2 = new MockMultipartFile("temp2",
-                                                "temp.txt",
+                                                "temp2.txt",
                                                 "text/html; charset=utf-8",
                                                 new FileInputStream("D:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\temp.txt"));                                                
         MockMultipartFile file3 = new MockMultipartFile("temp3",
-                                                "temp.txt",
+                                                "temp3.txt",
                                                 "text/html; charset=utf-8",
                                                 new FileInputStream("D:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\temp.txt"));                                                                                                
         
@@ -208,45 +244,44 @@ public class BoardServiceTest {
                                     .content("update content")
                                     .build();
 
-        Header<BoardApiResponse> afterData = boardService.update(request, mFiles, beforeData.getData().getId());
+        boardService.update(request, mFiles, beforeData.getData().getId(), userPrincipal);
 
-        assertEquals(afterData.getData().getTitle(), "update title");
-        assertEquals(afterData.getData().getContent(), "update content");
-        assertEquals(afterData.getData().getFileList().size(), 3);
-
+        assertEquals(boardService.read(1L).getData().getTitle(), "update title");
+        assertEquals(boardService.read(1L).getData().getContent(), "update content");
+        assertEquals(boardService.read(1L).getData().getFileList().size(), 3);
     }
 
-    public Header<BoardApiResponse> test() throws Exception{
-        MockMultipartFile file1 = new MockMultipartFile("image1",
-                                                "test.png",
-                                                "image/png",
-                                                new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
-        MockMultipartFile file2 = new MockMultipartFile("image2",
-                                                "test.png",
-                                                "image/png",
-                                                new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));                                                
+    // public Header<BoardApiResponse> test() throws Exception{
+    //     MockMultipartFile file1 = new MockMultipartFile("image1",
+    //                                             "test.png",
+    //                                             "image/png",
+    //                                             new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
+    //     MockMultipartFile file2 = new MockMultipartFile("image2",
+    //                                             "test.png",
+    //                                             "image/png",
+    //                                             new FileInputStream("D:\\fastcampus\\97_Oauth2_jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));                                                
         
         
-        mFiles.add((MultipartFile)file1);
-        mFiles.add((MultipartFile)file2);
+    //     mFiles.add((MultipartFile)file1);
+    //     mFiles.add((MultipartFile)file2);
     
         
-        request = CreateBoardRequest.builder()
-                                    .title("title")
-                                    .content("content")
-                                    .build();
+    //     request = CreateBoardRequest.builder()
+    //                                 .title("title")
+    //                                 .content("content")
+    //                                 .build();
 
-        SignUpRequest signUpRequest = new SignUpRequest("name test", "test12@naver.com", "1234", "ADMIN");
-        authService.signup(signUpRequest, null);
-        SignInRequest signInRequest = new SignInRequest("test12@naver.com","1234", "false");
-        ResponseEntity<AuthResponse> authResponse = authService.signin(signInRequest, null);
+    //     SignUpRequest signUpRequest = new SignUpRequest("name test", "test12@naver.com", "1234", "ADMIN");
+    //     authService.signup(signUpRequest, null);
+    //     SignInRequest signInRequest = new SignInRequest("test12@naver.com","1234", "false");
+    //     ResponseEntity<AuthResponse> authResponse = authService.signin(signInRequest, null);
         
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserDetails userDetails = (UserDetails)principal;
+    //     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    //     UserDetails userDetails = (UserDetails)principal;
         
-        userPrincipal = new UserPrincipal(null, userDetails.getUsername(), userDetails.getPassword()
-                                                            , userDetails.getAuthorities(), userDetails.getUsername());
+    //     userPrincipal = new UserPrincipal(null, userDetails.getUsername(), userDetails.getPassword()
+    //                                                         , userDetails.getAuthorities(), userDetails.getUsername());
 
-        return null;    
-    }
+    //     return null;    
+    // }
 }
