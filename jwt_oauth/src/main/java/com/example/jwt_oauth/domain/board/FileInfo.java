@@ -20,14 +20,14 @@ public class FileInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    
     private Long id;
 
     private String fileName;
 
     private String filePath;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "board_id")
     private BoardInfo boardInfo;
 

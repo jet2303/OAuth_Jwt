@@ -8,7 +8,7 @@
 <div layout:fragment="content" class="content">
     <article>
         <div class="container" role="main">
-            <form class="form-horizontal" name="contentName" th:action="@{/board/create}" th:object="${boardApiResponse}" method="post" enctype="multipart/form-data">
+            <form class="form-horizontal" name="contentName" th:action="@{/board/update/{idx} (idx=${id})}" th:object="${boardApiResponse}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="_method" value="put">
 				<input type="hidden" th:field="*{id}">
 
@@ -28,27 +28,15 @@
                     <textarea class="form-control" rows="5" id="boardContent" name="boardContent" th:field="*{content}" placeholder="내용을 입력해 주세요"></textarea>
                 </div>
                 <br>
-                <!-- <div data-name="fileDiv" class="form-group filebox bs3-primary">
-					<label for="file_0" class="col-sm-2 control-label">파일1</label>
-					<div class="col-sm-10">
-						<input type="text" class="upload-name" value="파일 찾기" readonly />
-						<label for="file_0" class="control-label">찾아보기</label>
-						<input type="file" name="files" id="file_0" class="upload-hidden" onchange="changeFilename(this)" />
-					
-						
-					</div>
-				</div> -->
                 <div class="custom-file" id="custom-file-div">
                     <input type="file" id="customFile" name="uploadfiles" th:onchange="fileUpload(this)" multiple>
                     <br>
-
-                    <!-- <input type="text" id="uploadListText" class="form-control" name="fileListText" disabled=""> -->
-                    <div>
-                        <div id="uploadListText">
-                            <input type="file" name="uploadfiles" multiple="multiple" class="custom-file-input">
-                                <tr th:each="file : ${fileList}">
-                                    <a th:text="${file.fileName}"></a>
-                                </tr>
+                    <div class="form-group" th:if="${not #lists.isEmpty( fileList )}">
+                        <label for="inp-type-5" class="col-sm-2 control-label"><h4>첨부파일</h4></label>
+                        <div class="form-group" th:each="row : *{fileList}">
+                            <div class="col-sm-10">
+                                <p class="form-control" th:text="${row.fileName}"></p>		
+                            </div>
                         </div>
                     </div>
                     <!-- <label for="customFile"></label> -->

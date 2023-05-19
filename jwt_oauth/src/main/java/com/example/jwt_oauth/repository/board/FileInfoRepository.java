@@ -19,10 +19,17 @@ import com.example.jwt_oauth.domain.board.FileInfo;
 @Repository
 public interface FileInfoRepository extends JpaRepository<FileInfo, Long>{
     @Transactional
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "DELETE FROM FileInfo WHERE boardInfo=:boardInfo")
     void deleteByBoardInfo(@Param("boardInfo") BoardInfo boardInfo);
     
+
+    
+    // @Transactional
+    // @Modifying
+    // @Query(value = "DELTE FROM FileInfo WHERE id=:id")
+    // void delteByBoardId(@Param(value = "id")Long id);
+
     Optional<List<FileInfo>> findByBoardInfo(BoardInfo boardInfo);
 
 }

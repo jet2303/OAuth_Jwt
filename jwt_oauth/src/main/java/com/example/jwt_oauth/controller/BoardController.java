@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,10 +60,6 @@ public class BoardController {
         return "redirect:/page";
     }
 
-    // @GetMapping(value = "/read/{idx}")
-    // public Header<BoardApiResponse> boardRead(@PathVariable(name = "idx") Long id){
-    //     return boardService.read(id);
-    // }
     @GetMapping(value = "/read/{idx}")
     public ModelAndView boardRead(@PathVariable(name = "idx") Long id){
 
@@ -73,5 +70,19 @@ public class BoardController {
         return new ModelAndView("newBoard/page/view")
                     .addObject("boardDetail", response.getData())
                     .addObject("userName", userPrincipal.getUserName());
+    }
+
+    @PutMapping(value = "/update/{idx}")
+    public ModelAndView boardUpdate(@ModelAttribute CreateBoardRequest request
+                                        ,@RequestPart(name = "uploadfiles") List<MultipartFile> files
+                                        ,@PathVariable(name = "idx") Long id){
+        Object authentication = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserPrincipal userPrincipal = (UserPrincipal)authentication;
+        
+        Header<BoardApiResponse> response = boardService.update(request, files, userPrincipal, id);
+
+        return new ModelAndView("newBoard/page/view")
+                        .addObject("boardDetail", response.getData())
+                        .addObject("userName", userPrincipal.getUserName());
     }
 }

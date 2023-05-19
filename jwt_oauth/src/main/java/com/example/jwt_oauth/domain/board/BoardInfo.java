@@ -15,6 +15,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotBlank;
 
+import org.hibernate.annotations.DynamicUpdate;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -35,7 +37,7 @@ import lombok.ToString;
 @Setter
 // @ToString(exclude = "fileInfoList")
 @ToString
-// @DynamicUpdate   //변경된 필드만 업데이트
+@DynamicUpdate   //변경된 필드만 업데이트
 public class BoardInfo extends BaseEntity{
     
     @Id 
@@ -59,7 +61,7 @@ public class BoardInfo extends BaseEntity{
 
     
     // @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.LAZY)
     private List<FileInfo> fileInfoList = new ArrayList<>();
 
 
@@ -133,4 +135,12 @@ public class BoardInfo extends BaseEntity{
     }
 
     public BoardInfo(){}
+
+    public void updateFile(List<FileInfo> fileList){
+        if(this.fileInfoList != null){
+            this.fileInfoList.removeAll(this.fileInfoList);
+        }
+        // this.fileInfoList = fileList;
+        fileList.forEach(updateFile -> fileInfoList.add(updateFile));
+    }
 }

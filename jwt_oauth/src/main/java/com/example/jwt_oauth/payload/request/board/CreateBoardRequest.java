@@ -22,7 +22,7 @@ import lombok.Setter;
 @Builder
 public class CreateBoardRequest {
     
-    // private Long id;
+    private Long id;
 
     private String title;
 

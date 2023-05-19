@@ -148,13 +148,13 @@ public class AuthService {
                                                 
         URI location = ServletUriComponentsBuilder
                         .fromCurrentContextPath()
-                        .path("/main")
+                        .path("/page")
                         // .buildAndExpand(user.getId())
                         .buildAndExpand()
                         .toUri();
 
         try{
-            response.sendRedirect("/main");
+            response.sendRedirect("/page");
         }catch(IOException e){
             e.printStackTrace();
         }

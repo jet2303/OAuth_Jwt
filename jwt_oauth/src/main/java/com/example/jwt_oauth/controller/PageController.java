@@ -112,7 +112,8 @@ public class PageController {
         return new ModelAndView("/newBoard/page/update")
                             .addObject("boardApiResponse", response.getData())
                             .addObject("uploadfiles", response.getData().getFileList())
-                            .addObject("userName", userPrincipal.getUserName());
+                            .addObject("userName", userPrincipal.getUserName())
+                            .addObject("id", id);
     }
 
 }

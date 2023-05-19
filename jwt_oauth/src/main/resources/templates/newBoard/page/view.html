@@ -7,8 +7,18 @@
 
 	<th:block layout:fragment="content">
 		<div class="card-content">
-			<!-- <form class="form-horizontal form-view" th:object="${board}"> -->
+			
+			
+
 			<form class="form-horizontal form-view" th:object="${boardDetail}">
+				<input type="hidden" th:field="*{id}">
+				<div class="form-group">
+					<label for="inp-type-1" class="col-sm-2 control-label"><h4>idx</h4></label>
+					<div class="col-sm-10">
+						<p class="form-control" th:text="*{id}"></p>
+					</div>
+				</div>
+
 				<div class="form-group">
 					<label for="inp-type-1" class="col-sm-2 control-label"><h4>제목</h4></label>
 					<div class="col-sm-10">
@@ -53,7 +63,8 @@
 				<a th:href="@{/boardPage/page}" class="btn btn-default waves-effect waves-light" style="float: right; background-color: dimgray;" >뒤로가기</a>
 				<!-- <a th:href="@{/boardPage/write( id=${boardDetail.id} )}" class="btn btn-primary waves-effect waves-light">수정하기</a> -->
 				
-				<form th:action="@{/boardPage/write/{id} (id=${boardDetail.id})}" th:object="${boardDetail}" method="get" style="float: right;">
+				<form th:action="@{/update/{idx} (idx=${boardDetail.id})}" th:object="${boardDetail}" th:method="get" style="float: right;" enctype="multipart/form-data">
+					<!-- <input type="hidden" th:field="*{id}"> -->
 					<!-- <input type="hidden" name="_method" value="put"> -->
 					<!-- <input type="hidden" th:field="*{id}">
 					<input type="hidden" th:field="*{title}">
@@ -64,7 +75,7 @@
 					<button type="submit" class="btn btn-primary waves-effect waves-light " style="margin-right: 5px">수정하기</button>
 				</form>
 
-				<form th:action="@{/boardPage/{id} (id=${boardDetail.id})}" method="post" style="float: right; margin-right: 5px;">
+				<form th:action="@{/boardPage/{id} (id=${boardDetail.id})}" method="get" style="float: right; margin-right: 5px;">
 					<input type="hidden" name="_method" value="DELETE">
 					<button type="submit" class="btn btn-danger waves-effect waves-light" onclick="alert('삭제되었습니다.')">삭제하기</button>
 				</form>
