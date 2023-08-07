@@ -58,22 +58,21 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-// @Transactional
+@Transactional(readOnly = true)
 public class BoardService {
 
     private final BoardRepository boardRepository;
     private final FileInfoRepository fileInfoRepository;
     private final EntityManager entityManager;
 
-    String filePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
-
+    // String filePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
+    String filePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
     /**
      * @date : 2023-01-20
      * @author : AJS
      * @Description: 파라미터 boardInfo → BoardApiResponse로 변경
      **/
 
-    // @Transactional(propagation = Propagation.REQUIRED)
     public Header<BoardApiResponse> create(final CreateBoardRequest request, final List<MultipartFile> files,
             UserPrincipal userPrincipal) {
         if (request.getTitle() == null) {
@@ -99,7 +98,7 @@ public class BoardService {
 
     }
 
-    @Transactional(readOnly = true)
+    
     public Header<BoardApiResponse> read(final Long id) {
 
         BoardInfo boardInfo = boardRepository.readQuery(id)
@@ -138,9 +137,10 @@ public class BoardService {
         return Header.OK(boardApiResponses);
     }
 
+    // 권한 여부에 따른 수정 유무 로직 추가할것.
     @Transactional
     // @Modifying
-    public Header<BoardInfoDto> update1(final CreateBoardRequest request, final List<MultipartFile> files,
+    public Header<BoardApiResponse> update(final CreateBoardRequest request, final List<MultipartFile> files,
             UserPrincipal userPrincipal, Long id) {
 
         BoardInfo boardInfo = boardRepository.readQuery(id)
@@ -172,62 +172,23 @@ public class BoardService {
         }
 
         BoardInfo savedBoard = boardRepository.save(boardInfo);
-        // List<FileInfoDto> fileInfoDtos = fileToFileDto(fileList);
-        List<FileInfoDto> fileInfoDtos = fileToFileDto(savedBoard.getFileInfoList());
-
-        return Header.OK(new BoardInfoDto.BoardInfoDtoBuilder()
-                .id(savedBoard.getId())
-                .email(savedBoard.getEmail())
-                .userName(savedBoard.getUserName())
-                .title(savedBoard.getTitle())
-                .content(savedBoard.getTitle())
-                .boardStatus(savedBoard.getBoardStatus())
-                .fileInfoList(fileInfoDtos)
-                .createdBy(savedBoard.getCreatedBy())
-                .createdDate(savedBoard.getCreatedDate())
-                .build());
-    }
-
-    // 권한 여부에 따른 수정 유무 로직 추가할것.
-    @Transactional
-    // @Modifying
-    public Header<BoardApiResponse> update(final CreateBoardRequest request, final List<MultipartFile> files,
-            UserPrincipal userPrincipal, Long id) {
-
-        BoardInfo board = entityManager.find(BoardInfo.class, id);
-        List<FileInfo> findFileList = fileInfoRepository.findByBoardInfo(board).get();
-
-        log.info("before update board : {}", board);
-        log.info("before update fileList : {}", findFileList);
-
-        FileInfo file1 = multiPartFileToFileInfo(files.get(0));
-        FileInfo file2 = multiPartFileToFileInfo(files.get(1));
-        // file1.setId(3L);
-        // file2.setId(4L);
-        board.getFileInfoList().clear();
-        board.getFileInfoList().add(file1);
-        board.getFileInfoList().add(file2);
-
-        board.setTitle(request.getTitle());
-        board.setContent(request.getContent());
-
-        findFileList.add(file1);
-        findFileList.add(file2);
-        findFileList.forEach(file -> board.addFile(file));
-
-        log.info("service board result : {}", board);
-
-        fileInfoRepository.saveAll(findFileList);
-
-        entityManager.persist(board);
-        entityManager.flush();
-        entityManager.clear();
-
+        
         return Header.OK(BoardApiResponse.builder()
-                .title(board.getTitle())
-                .content(board.getContent())
-                .build());
+                                            .id(savedBoard.getId())
+                                            .email(savedBoard.getEmail())
+                                            .userName(savedBoard.getUserName())
+                                            .title(savedBoard.getTitle())
+                                            .content(savedBoard.getContent())
+                                            .boardStatus(savedBoard.getBoardStatus().toString())
+                                            .createdDate(savedBoard.getCreatedDate())
+                                            .createBy(savedBoard.getCreatedBy())
+                                            .modifiedDate(savedBoard.getModifiedDate())
+                                            .modifiedBy(savedBoard.getModifiedBy())
+                                            .fileList(savedBoard.getFileInfoList())
+                                            .build());
+        
     }
+
 
     @Transactional
     public void delete(UserPrincipal userPrincipal, final Long id) {

@@ -16,6 +16,7 @@ public enum UserErrorCode implements ErrorCode{
     ,NOT_MATCHED_PASSWORD(HttpStatus.FORBIDDEN, "not matched password")
     ,ANONYMOUS_USER(HttpStatus.FORBIDDEN, "Anonymous don't make a board")
     ,CUSTOM_ERROR(HttpStatus.SEE_OTHER, "Custom Error")
+    ,USER_ALREADY_EXISTS(HttpStatus.FORBIDDEN, "user is already exists")
     ;
 
     private final HttpStatus httpStatus;

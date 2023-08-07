@@ -23,6 +23,8 @@ import com.example.jwt_oauth.controller.GlobalExceptionHandler;
 import com.example.jwt_oauth.domain.dto.UserDto;
 import com.example.jwt_oauth.domain.user.Role;
 import com.example.jwt_oauth.payload.error.CustomException;
+import com.example.jwt_oauth.payload.error.RestApiException;
+import com.example.jwt_oauth.payload.error.errorCodes.UserErrorCode;
 import com.example.jwt_oauth.payload.request.auth.ChangePasswordRequest;
 import com.example.jwt_oauth.payload.request.auth.SignUpRequest;
 import com.example.jwt_oauth.payload.response.ApiResponse;
@@ -51,10 +53,10 @@ public class UserServiceTest extends MockBeans {
 
         ResponseEntity<UserDto> response = userService.read("test@naver.com");
 
-        assertEquals(response.getBody().getEmail(), "test@naver.com");
-        assertEquals(response.getBody().getName(), "test");
+        assertEquals("test@naver.com", response.getBody().getEmail());
+        assertEquals("test", response.getBody().getName());
         assertTrue(passwordEncoder.matches("1234", response.getBody().getPassword()));
-        assertEquals(response.getBody().getRole().toString(), "USER");
+        assertEquals("USER", response.getBody().getRole().toString());
         assertNotNull(response.getBody().getCreatedDate());
     }
 
@@ -62,16 +64,20 @@ public class UserServiceTest extends MockBeans {
     @Test
     public void 유저생성_실패_중복ID() {
         SignUpRequest signUpRequest = SignUpRequest.builder()
-                .name("test")
-                .email("test1@naver.com")
-                .password("1234")
-                .role(Role.USER.toString())
-                .build();
+                                                    .name("test")
+                                                    .email("test1@naver.com")
+                                                    .password("1234")
+                                                    .role(Role.USER.toString())
+                                                    .build();
 
         ResponseEntity<ApiResponse> response = authService.signup(signUpRequest, mockHttpServletResponse);
-        log.info("{}", response.getBody().getNewInformation());
-        // assertThrows(BadCredentialsException.class, () -> {
-        // authService.signup(signUpRequest, mockHttpServletResponse);
+        
+        RestApiException ex = (RestApiException) response.getBody().getNewInformation();
+        assertEquals(UserErrorCode.USER_ALREADY_EXISTS ,ex.getErrorCode());
+        
+        // Error를 Thrown 하는것보단 Body에 담아서 던져주는게 나은것같음.
+        // assertThrows(RestApiException.class, () -> {
+        //                     authService.signup(signUpRequest, mockHttpServletResponse);
         // });
 
     }
@@ -88,9 +94,6 @@ public class UserServiceTest extends MockBeans {
     @Test
     public void 유저Read_실패() {
 
-        // assertThrows(UsernameNotFoundException.class, () ->
-        // userService.read("test111@naver.com").getBody()
-        // );
         assertThrows(CustomException.class, () -> userService.read("test111@naver.com").getBody());
     }
 
@@ -98,22 +101,6 @@ public class UserServiceTest extends MockBeans {
     // 유저 실패 - list read
 
     // 유저 수정 성공 - PW
-    // @Test
-    // @Disabled
-    // public void 유저_Update_PW_성공(){
-    // UserDto userDto = UserDto.builder()
-    // .email("test1@naver.com")
-    // .password("update1234")
-    // .build();
-    // ResponseEntity<ApiResponse> response = userService.update(userDto);
-
-    // UserDto result = userService.read("test1@naver.com").getBody();
-
-    // Message message = (Message) response.getBody().getNewInformation();
-    // assertEquals(message.getMessage(), "수정 성공");
-    // assertTrue(passwordEncoder.matches("update1234", result.getPassword()));
-    // }
-
     @Test
     @Transactional
     public void 유저_Update_PW_성공() {

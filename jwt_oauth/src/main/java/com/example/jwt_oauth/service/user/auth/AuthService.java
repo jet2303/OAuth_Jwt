@@ -33,6 +33,8 @@ import com.example.jwt_oauth.domain.user.Provider;
 import com.example.jwt_oauth.domain.user.Role;
 import com.example.jwt_oauth.domain.user.Token;
 import com.example.jwt_oauth.domain.user.User;
+import com.example.jwt_oauth.payload.error.RestApiException;
+import com.example.jwt_oauth.payload.error.errorCodes.UserErrorCode;
 import com.example.jwt_oauth.payload.request.auth.ChangePasswordRequest;
 import com.example.jwt_oauth.payload.request.auth.RefreshTokenRequest;
 import com.example.jwt_oauth.payload.request.auth.SignInRequest;
@@ -212,7 +214,7 @@ public class AuthService {
                 // return new ExceptionResponse(400, "이미 등록된 계정입니다.");
                 return ResponseEntity.ok(ApiResponse.builder()
                                                     .check(true)
-                                                    .newInformation(new ExceptionResponse(400, "존재하는 계정1"))
+                                                    .newInformation(new RestApiException(UserErrorCode.USER_ALREADY_EXISTS))
                                                     .information(new ExceptionResponse(400, "존재하는 계정2"))
                                                     .build());          
             }catch(Exception e){
