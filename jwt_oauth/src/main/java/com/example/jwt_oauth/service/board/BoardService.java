@@ -6,13 +6,17 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,9 +33,15 @@ import com.example.jwt_oauth.domain.board.BoardStatus;
 import com.example.jwt_oauth.domain.board.FileInfo;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto;
 import com.example.jwt_oauth.domain.dto.BoardListDto;
+import com.example.jwt_oauth.domain.dto.FileInfoDto;
 import com.example.jwt_oauth.domain.dto.BoardInfoDto.BoardInfoDtoBuilder;
 import com.example.jwt_oauth.payload.Header;
 import com.example.jwt_oauth.payload.Pagenation;
+import com.example.jwt_oauth.payload.error.CustomException;
+import com.example.jwt_oauth.payload.error.ErrorCode;
+import com.example.jwt_oauth.payload.error.RestApiException;
+import com.example.jwt_oauth.payload.error.errorCodes.BoardErrorCode;
+import com.example.jwt_oauth.payload.error.errorCodes.UserErrorCode;
 import com.example.jwt_oauth.payload.request.board.CreateBoardRequest;
 import com.example.jwt_oauth.payload.response.ApiResponse;
 import com.example.jwt_oauth.payload.response.Message;
@@ -51,226 +61,272 @@ import lombok.extern.slf4j.Slf4j;
 // @Transactional
 public class BoardService {
 
-    
     private final BoardRepository boardRepository;
     private final FileInfoRepository fileInfoRepository;
+    private final EntityManager entityManager;
 
-    String filePath = "D:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
+    String filePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
 
     /**
-    * @date : 2023-01-20
-    * @author : AJS
-    * @Description: 파라미터 boardInfo → BoardApiResponse로 변경
-    **/
+     * @date : 2023-01-20
+     * @author : AJS
+     * @Description: 파라미터 boardInfo → BoardApiResponse로 변경
+     **/
 
-    
     // @Transactional(propagation = Propagation.REQUIRED)
-    public Header<BoardApiResponse> create(final CreateBoardRequest request, final List<MultipartFile> files
-                                            , UserPrincipal userPrincipal){
-        BoardInfo boardInfo = requestToBoard(request, userPrincipal);        
+    public Header<BoardApiResponse> create(final CreateBoardRequest request, final List<MultipartFile> files,
+            UserPrincipal userPrincipal) {
+        if (request.getTitle() == null) {
+            throw new RestApiException(BoardErrorCode.CREATE_EMPTY_TITLE);
+        }
 
-        BoardInfo boardSaved = setBoardInfo(userPrincipal, boardInfo, files);
-        log.info("{}", read(boardSaved.getId()).getData());
-        if(!files.isEmpty()){
-            //boardapiresponse builder로 바꿀수있진않나??
-            return Header.OK(new BoardApiResponse(boardSaved, boardSaved.getFileInfoList()));
+        if (request.getContent() == null) {
+            throw new RestApiException(BoardErrorCode.CREATE_EMPTY_CONTENT);
+        }
 
-        }else{
-            return Header.OK(new BoardApiResponse(boardSaved));
+        if (userPrincipal.getUserName() == null) {
+            throw new RestApiException(UserErrorCode.ANONYMOUS_USER);
+        }
+
+        BoardInfo boardInfo = requestToBoard(request, userPrincipal);
+        BoardInfoDto boardInfoDto = setBoardInfo(userPrincipal, boardInfo, files);
+
+        if (!files.isEmpty()) {
+            return Header.OK(BoardApiResponse.from(boardInfoDto));
+        } else {
+            return Header.OK(BoardApiResponse.from(boardInfoDto));
         }
 
     }
-   
-    // @Transactional(readOnly = true)
-    public Header<BoardApiResponse> read(final Long id){
-        // BoardInfo boardInfo = boardRepository.findById(id).orElseThrow(() -> new NoSuchElementException("not found board"));
-        BoardInfo boardInfo = boardRepository.readQuery(id).orElseThrow(() -> new NoSuchElementException("not found board"));
-        log.info("test : {}", boardInfo);
+
+    @Transactional(readOnly = true)
+    public Header<BoardApiResponse> read(final Long id) {
+
+        BoardInfo boardInfo = boardRepository.readQuery(id)
+                .orElseThrow(() -> new RestApiException(BoardErrorCode.NOT_FOUND_BOARD));
+        // return Header.OK(new BoardApiResponse(boardInfo));
         return Header.OK(BoardApiResponse.builder()
-                                            .id(boardInfo.getId())
-                                            .userName(boardInfo.getUserName())
-                                            .title(boardInfo.getTitle())
-                                            .content(boardInfo.getContent())
-                                            .boardStatus(boardInfo.getBoardStatus())
-                                            .createdDate(boardInfo.getCreatedDate())
-                                            .createBy(boardInfo.getCreatedBy())
-                                            .modifiedDate(boardInfo.getModifiedDate())
-                                            .modifiedBy(boardInfo.getModifiedBy())
-                                            // .fileList(getOriginFileName(boardInfo.getFileInfoList()))
-                                            .fileList(boardInfo.getFileInfoList().stream()
-                                                                                .map(file -> setOriginFileName(file))
-                                                                                .collect(Collectors.toList()))
-                                            .build());
+                .id(boardInfo.getId())
+                .userName(boardInfo.getUserName())
+                .title(boardInfo.getTitle())
+                .content(boardInfo.getContent())
+                .boardStatus(boardInfo.getBoardStatus().toString())
+                .createdDate(boardInfo.getCreatedDate())
+                .createBy(boardInfo.getCreatedBy())
+                .modifiedDate(boardInfo.getModifiedDate())
+                .modifiedBy(boardInfo.getModifiedBy())
+                .fileList(boardInfo.getFileInfoList())
+                .build());
     }
 
-    public Header<List<BoardApiResponse>> getBoardList(){
-        
-        // List<Boardlist> boardList = boardRepository.findByBoardStatus(BoardStatus.REGISTERED)
-        //                                             .orElseThrow( () -> new RuntimeException("등록된 게시글이 없습니다."));
+    public Header<List<BoardApiResponse>> getBoardList() {
+
+        // List<Boardlist> boardList =
+        // boardRepository.findByBoardStatus(BoardStatus.REGISTERED)
+        // .orElseThrow( () -> new RuntimeException("등록된 게시글이 없습니다."));
         List<Boardlist> boardList = boardRepository.getBoardList()
-                                                    .orElseThrow(() -> new RuntimeException("등록된 게시글이 없습니다."));
+                .orElseThrow(() -> new RestApiException(BoardErrorCode.NOT_FOUND_BOARDLIST));
 
         List<BoardApiResponse> boardApiResponses = new ArrayList<>();
-        if(boardList.size()<1){
+        if (boardList.size() < 1) {
             return Header.OK(boardApiResponses);
-        }        
-        
+        }
+
         boardApiResponses = boardList.stream().map(board -> boardListDto(board))
-                                                 .collect(Collectors.toList());
+                .collect(Collectors.toList());
 
         return Header.OK(boardApiResponses);
     }
-    
-    // 권한 여부에 따른 수정 유무 로직 추가할것.
+
     @Transactional
-    public Header<BoardApiResponse> update(final CreateBoardRequest request, final List<MultipartFile> files
-                                                ,UserPrincipal userPrincipal, Long id){
+    // @Modifying
+    public Header<BoardInfoDto> update1(final CreateBoardRequest request, final List<MultipartFile> files,
+            UserPrincipal userPrincipal, Long id) {
 
-        //// boardInfo 수정 메소드
-        BoardInfo boardInfo = boardRepository.findById(id).get();
+        BoardInfo boardInfo = boardRepository.readQuery(id)
+                .orElseThrow(() -> new RestApiException(BoardErrorCode.NOT_FOUND_BOARD));
+        boardInfo.setTitle(request.getTitle())
+                .setContent(request.getContent())
+                .setEmail(request.getEmail())
+                .setUserName(request.getUserName())
+                .setBoardStatus(request.getBoardStatus());
 
-        boardInfo.setTitle(request.getTitle());
-        boardInfo.setContent(request.getContent());
-        // orphanremoval 때문에 deleteByBoardInfo 둘중 하나 없애기.
         boardInfo.getFileInfoList().clear();
+        List<FileInfo> fileList = new ArrayList<>();
+        try {
+            for (MultipartFile file : files) {
+                String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                File saveFile = new File(filePath, fileName);
+                file.transferTo(saveFile);
 
-        if(emptyFileChk(files)){
-            
-            fileInfoRepository.deleteByBoardInfo(boardInfo);
-            
-            List<FileInfo> fileList = files.stream()
-                                            .map(file -> multiPartFileToFileInfo(file, boardInfo))
-                                            .collect(Collectors.toList());
-            
-            fileInfoRepository.saveAll(fileList);
-            
-        }else{
-            boardInfo.setFileInfoList(null);
-            fileInfoRepository.saveAll(boardInfo.getFileInfoList());
-            return Header.OK(BoardApiResponse.builder()
-                                            .id(boardInfo.getId())
-                                            .email(boardInfo.getEmail())
-                                            .userName(boardInfo.getUserName())
-                                            .title(boardInfo.getTitle())
-                                            .content(boardInfo.getContent())
-                                            .boardStatus(boardInfo.getBoardStatus())
-                                            .createdDate(boardInfo.getCreatedDate())
-                                            .createBy(boardInfo.getCreatedBy())
-                                            .modifiedDate(boardInfo.getModifiedDate())
-                                            .modifiedBy(boardInfo.getModifiedBy())
-                                            // .fileList(getOriginFileName(boardInfo.getFileInfoList()))
-                                            .fileList(boardInfo.getFileInfoList())
-                                            .build());
+                FileInfo fileInfo = FileInfo.builder()
+                        .fileName(fileName)
+                        .filePath("/files/" + fileName)
+                        .boardInfo(boardInfo)
+                        .build();
+                fileList.add(fileInfo);
+                boardInfo.addFile(fileInfo);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        return Header.OK(BoardApiResponse.builder()
-                                            .id(boardInfo.getId())
-                                            .email(boardInfo.getEmail())
-                                            .userName(boardInfo.getUserName())
-                                            .title(boardInfo.getTitle())
-                                            .content(boardInfo.getContent())
-                                            .boardStatus(boardInfo.getBoardStatus())
-                                            .createdDate(boardInfo.getCreatedDate())
-                                            .createBy(boardInfo.getCreatedBy())
-                                            .modifiedDate(boardInfo.getModifiedDate())
-                                            .modifiedBy(boardInfo.getModifiedBy())
-                                            // .fileList(getOriginFileName(boardInfo.getFileInfoList()))
-                                            // .fileList(boardInfo.getFileInfoList().stream()
-                                            //                                     .map(file -> setOriginFileName(file))
-                                            //                                     .collect(Collectors.toList()))
-                                            .fileList(boardInfo.getFileInfoList())
-                                            .build());
+        BoardInfo savedBoard = boardRepository.save(boardInfo);
+        // List<FileInfoDto> fileInfoDtos = fileToFileDto(fileList);
+        List<FileInfoDto> fileInfoDtos = fileToFileDto(savedBoard.getFileInfoList());
+
+        return Header.OK(new BoardInfoDto.BoardInfoDtoBuilder()
+                .id(savedBoard.getId())
+                .email(savedBoard.getEmail())
+                .userName(savedBoard.getUserName())
+                .title(savedBoard.getTitle())
+                .content(savedBoard.getTitle())
+                .boardStatus(savedBoard.getBoardStatus())
+                .fileInfoList(fileInfoDtos)
+                .createdBy(savedBoard.getCreatedBy())
+                .createdDate(savedBoard.getCreatedDate())
+                .build());
     }
 
-    
-    // public Header<ApiResponse> delete(UserPrincipal userPrincipal, final Long id){
+    // 권한 여부에 따른 수정 유무 로직 추가할것.
     @Transactional
-    public void delete(UserPrincipal userPrincipal, final Long id){
-        
+    // @Modifying
+    public Header<BoardApiResponse> update(final CreateBoardRequest request, final List<MultipartFile> files,
+            UserPrincipal userPrincipal, Long id) {
+
+        BoardInfo board = entityManager.find(BoardInfo.class, id);
+        List<FileInfo> findFileList = fileInfoRepository.findByBoardInfo(board).get();
+
+        log.info("before update board : {}", board);
+        log.info("before update fileList : {}", findFileList);
+
+        FileInfo file1 = multiPartFileToFileInfo(files.get(0));
+        FileInfo file2 = multiPartFileToFileInfo(files.get(1));
+        // file1.setId(3L);
+        // file2.setId(4L);
+        board.getFileInfoList().clear();
+        board.getFileInfoList().add(file1);
+        board.getFileInfoList().add(file2);
+
+        board.setTitle(request.getTitle());
+        board.setContent(request.getContent());
+
+        findFileList.add(file1);
+        findFileList.add(file2);
+        findFileList.forEach(file -> board.addFile(file));
+
+        log.info("service board result : {}", board);
+
+        fileInfoRepository.saveAll(findFileList);
+
+        entityManager.persist(board);
+        entityManager.flush();
+        entityManager.clear();
+
+        return Header.OK(BoardApiResponse.builder()
+                .title(board.getTitle())
+                .content(board.getContent())
+                .build());
+    }
+
+    @Transactional
+    public void delete(UserPrincipal userPrincipal, final Long id) {
+
         BoardInfo boardInfo = boardRepository.findById(id).get();
-        
-        if(userPrincipal.getAuthorities().equals("ROLE_ADMIN") || userPrincipal.getUserName().equals(boardInfo.getUserName())){
-            
+
+        if (userPrincipal.getAuthorities().equals("ROLE_ADMIN")
+                || userPrincipal.getUserName().equals(boardInfo.getUserName())) {
+
             // delete 로 게시글 비활성화
             boardInfo.setBoardStatus(BoardStatus.UNREGISTERED);
 
         }
-        
+
     }
 
+    public Header<List<BoardApiResponse>> search(Pageable pageable) {
 
-    public Header<List<BoardApiResponse>> search(Pageable pageable){
-        
         Page<Boardlist> boards = boardRepository.findByBoardStatus(BoardStatus.REGISTERED, pageable)
-                                                .orElseThrow(() -> new RuntimeException("등록된 게시글이 없습니다."));
-                                            
+                .orElseThrow(() -> new RuntimeException("등록된 게시글이 없습니다."));
+
         List<BoardApiResponse> boardApiResponses = boards.stream().map(board -> response(board))
-                                                                    .collect(Collectors.toList());
-        
+                .collect(Collectors.toList());
 
         Pagenation pagenation = Pagenation.builder()
-                                            .totalPages(boards.getTotalPages())
-                                            .totalElements(boards.getTotalElements())
-                                            .currentPage(boards.getNumber())
-                                            .currentElements(boards.getNumberOfElements())
-                                            .build();
+                .totalPages(boards.getTotalPages())
+                .totalElements(boards.getTotalElements())
+                .currentPage(boards.getNumber())
+                .currentElements(boards.getNumberOfElements())
+                .build();
 
         return Header.OK(boardApiResponses, pagenation);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public Header<BoardApiResponse> findByFetchJoinId(Long id) {
+        // Optional<BoardInfoDto> board = boardRepository.findByFetchJoinId(id);
 
-    private BoardApiResponse response(Boardlist boardList){
+        List<BoardInfo> board = entityManager
+                .createQuery("SELECT b FROM BoardInfo b JOIN FETCH b.fileInfoList b.id=:id", BoardInfo.class)
+                .setParameter("id", id)
+                .getResultList();
+        return Header.OK(BoardApiResponse.from(board.get(0)));
+    }
+
+    ///////////////////////////////// private
+    ///////////////////////////////// method//////////////////////////////////////////////////////////////////////////
+
+    private BoardApiResponse response(Boardlist boardList) {
         BoardApiResponse response;
         response = BoardApiResponse.builder()
-                                                        .id(boardList.getId())
-                                                        .email(boardList.getEmail())
-                                                        .userName(boardList.getUserName())
-                                                        .title(boardList.getTitle())
-                                                        .content(boardList.getContent())
-                                                        .createdDate(boardList.getCreatedDate())
-                                                        .createBy(boardList.getCreatedBy())
-                                                        .modifiedDate(boardList.getModifiedDate())
-                                                        .modifiedBy(boardList.getModifiedBy())
-                                                        .fileList(boardList.getFileInfoList())
-                                                        .build();
-        return response;                                                        
-    }
-
-    private BoardApiResponse boardListDto(Boardlist boardInfo){
-        BoardApiResponse response;  
-        
-        response = BoardApiResponse.builder()
-                                                    .id(boardInfo.getId())
-                                                    .email(boardInfo.getEmail())
-                                                    .userName(boardInfo.getUserName())
-                                                    .title(boardInfo.getTitle())
-                                                    .content(boardInfo.getContent())
-                                                    .createdDate(boardInfo.getCreatedDate())
-                                                    .createBy(boardInfo.getCreatedBy())
-                                                    .modifiedDate(boardInfo.getModifiedDate())
-                                                    .modifiedBy(boardInfo.getModifiedBy())
-                                                    .build();
+                .id(boardList.getId())
+                .email(boardList.getEmail())
+                .userName(boardList.getUserName())
+                .title(boardList.getTitle())
+                .content(boardList.getContent())
+                .createdDate(boardList.getCreatedDate())
+                .createBy(boardList.getCreatedBy())
+                .modifiedDate(boardList.getModifiedDate())
+                .modifiedBy(boardList.getModifiedBy())
+                .fileList(boardList.getFileInfoList())
+                .build();
         return response;
-        
     }
 
-    private BoardInfo requestToBoard(CreateBoardRequest request, UserPrincipal userPrincipal){
-        BoardInfo boardInfo = new BoardInfo.BoardInfoBuilder()
-                                            .email(userPrincipal.getEmail())
-                                            .userName(request.getUserName())
-                                            .title(request.getTitle())
-                                            .content(request.getContent())
-                                            .boardStatus(request.getBoardStatus())
-                                            .build();
+    private BoardApiResponse boardListDto(Boardlist boardInfo) {
+        BoardApiResponse response;
+
+        response = BoardApiResponse.builder()
+                .id(boardInfo.getId())
+                .email(boardInfo.getEmail())
+                .userName(boardInfo.getUserName())
+                .title(boardInfo.getTitle())
+                .content(boardInfo.getContent())
+                .createdDate(boardInfo.getCreatedDate())
+                .createBy(boardInfo.getCreatedBy())
+                .modifiedDate(boardInfo.getModifiedDate())
+                .modifiedBy(boardInfo.getModifiedBy())
+                .build();
+        return response;
+
+    }
+
+    private BoardInfo requestToBoard(CreateBoardRequest request, UserPrincipal userPrincipal) {
+        BoardInfo boardInfo = BoardInfo.builder()
+                .email(userPrincipal.getEmail())
+                .userName(request.getUserName())
+                .title(request.getTitle())
+                .content(request.getContent())
+                .boardStatus(request.getBoardStatus())
+                .build();
         return boardInfo;
     }
 
-    private boolean emptyFileChk(List<MultipartFile> files){
-        
+    private boolean emptyFileChk(List<MultipartFile> files) {
+
         for (MultipartFile file : files) {
 
-            if("".equals(file.getOriginalFilename())){
+            if ("".equals(file.getOriginalFilename())) {
                 return false;
             }
         }
@@ -278,93 +334,124 @@ public class BoardService {
         return true;
     }
 
-    private static FileInfo setOriginFileName(FileInfo file){
+    private static FileInfo setOriginFileName(FileInfo file) {
         // cf837476-a611-4274-a469-02569f7cb97d_GPU.PNG
-        if(file.getFileName().equals("")){
+        if (file.getFileName().equals("")) {
             return null;
         }
-                
+
         String[] splitName = file.getFileName().split("_");
         String originFileName = null;
-        if(splitName.length == 1){
+        if (splitName.length == 1) {
             originFileName = splitName[0];
-        }else{
+        } else {
             originFileName = splitName[1];
         }
-        
+
         file.setFileName(originFileName);
-        // for (FileInfo fileInfo : fileList) {
-        //     arr = fileInfo.getFileName().split("_");
-        //     originFileName=arr[1];
-        //     fileInfo.setFileName(originFileName);
-        // }
+
         return file;
     }
 
-    private FileInfo multiPartFileToFileInfo(MultipartFile file, BoardInfo boardInfo){
-        try{
+    private FileInfo multiPartFileToFileInfo(MultipartFile file, BoardInfo boardInfo) {
+        try {
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            File saveFile = new File(filePath,fileName);
+            File saveFile = new File(filePath, fileName);
             file.transferTo(saveFile);
-            FileInfo fileInfo = new FileInfo.FileInfoBuilder()
-                                            .fileName(fileName)
-                                            .filePath("/files/" + fileName)
-                                            .boardInfo(boardInfo)
-                                            .build();
+            FileInfo fileInfo = FileInfo.builder()
+                    .fileName(fileName)
+                    .filePath("/files/" + fileName)
+                    .boardInfo(boardInfo)
+                    .build();
             return fileInfo;
-        }catch(IOException ioe){
+        } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-        
+
         return null;
     }
 
-    private FileInfo multiPartFileToFileInfo(MultipartFile file){
-        try{
+    private FileInfo multiPartFileToFileInfo(MultipartFile file) {
+        try {
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            File saveFile = new File(filePath,fileName);
+            File saveFile = new File(filePath, fileName);
             file.transferTo(saveFile);
-            FileInfo fileInfo = new FileInfo.FileInfoBuilder()
-                                            .fileName(fileName)
-                                            .filePath("/files/" + fileName)
-                                            .build();
+            // FileInfo fileInfo = new FileInfo.FileInfoBuilder()
+            // .fileName(fileName)
+            // .filePath("/files/" + fileName)
+            // .build();
+            FileInfo fileInfo = FileInfo.builder()
+                    .fileName(fileName)
+                    .filePath("/files/" + fileName)
+                    .build();
             return fileInfo;
-        }catch(IOException ioe){
+        } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-        
+
         return null;
     }
-    private BoardInfo setBoardInfo(UserPrincipal userPrincipal, BoardInfo boardInfo, final List<MultipartFile> files){
-        
-        boardInfo.setBoardStatus(BoardStatus.REGISTERED);
-        boardInfo.setEmail(userPrincipal.getEmail());
-        boardInfo.setUserName(userPrincipal.getUserName());
-        
-        boardRepository.save(boardInfo);
-        try{
-            List<FileInfo> fileList = new ArrayList<>();
 
-            if(files != null && emptyFileChk(files)){
+    private BoardInfoDto setBoardInfo(UserPrincipal userPrincipal, BoardInfo boardInfo,
+            final List<MultipartFile> files) {
+
+        BoardInfo newBoard = BoardInfo.builder()
+                .email(userPrincipal.getEmail())
+                .userName(userPrincipal.getUserName())
+                .title(boardInfo.getTitle())
+                .content(boardInfo.getContent())
+                .boardStatus(BoardStatus.REGISTERED)
+                .build();
+
+        List<FileInfo> fileList = new ArrayList<>();
+        try {
+            if (files != null && emptyFileChk(files)) {
                 for (MultipartFile file : files) {
                     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                    File saveFile = new File(filePath,fileName);
+                    File saveFile = new File(filePath, fileName);
                     file.transferTo(saveFile);
-                    FileInfo fileInfo = new FileInfo.FileInfoBuilder()
-                                                    .fileName(fileName)
-                                                    .filePath("/files/" + fileName)
-                                                    .boardInfo(boardInfo)
-                                                    .build();
+
+                    FileInfo fileInfo = FileInfo.builder()
+                            .fileName(fileName)
+                            .filePath("/files/" + fileName)
+                            .boardInfo(newBoard)
+                            .build();
                     fileList.add(fileInfo);
+                    newBoard.addFile(fileInfo);
                 }
-                
-                fileInfoRepository.saveAll(fileList);    
             }
-            boardInfo.setFileInfoList(fileList);
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return boardInfo;
+
+        BoardInfo savedBoard = boardRepository.save(newBoard);
+
+        List<FileInfoDto> fileInfoDtos = fileToFileDto(fileList);
+
+        return new BoardInfoDto.BoardInfoDtoBuilder()
+                .id(savedBoard.getId())
+                .email(savedBoard.getEmail())
+                .userName(savedBoard.getUserName())
+                .title(savedBoard.getTitle())
+                .content(savedBoard.getTitle())
+                .boardStatus(savedBoard.getBoardStatus())
+                .fileInfoList(fileInfoDtos)
+                .createdBy(savedBoard.getCreatedBy())
+                .createdDate(savedBoard.getCreatedDate())
+                .build();
     }
 
+    private List<FileInfoDto> fileToFileDto(List<FileInfo> fileList) {
+        List<FileInfoDto> dtoList = new ArrayList<>();
+
+        for (FileInfo fileInfo : fileList) {
+            FileInfoDto dto = FileInfoDto.builder()
+                    .id(fileInfo.getId())
+                    .fileName(fileInfo.getFileName())
+                    .filePath(fileInfo.getFilePath())
+                    .build();
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
 }

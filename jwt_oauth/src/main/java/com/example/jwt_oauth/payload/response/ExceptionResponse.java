@@ -1,5 +1,10 @@
 package com.example.jwt_oauth.payload.response;
 
+import lombok.Data;
+import lombok.ToString;
+
+@Data
+@ToString
 public class ExceptionResponse {
     
     private int httpValue;

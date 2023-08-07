@@ -17,30 +17,35 @@ import javax.validation.constraints.NotBlank;
 
 import org.hibernate.annotations.DynamicUpdate;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
+import lombok.experimental.Accessors;
 
 /**
-    * @date : 2023-01-23 
-    * @author : AJS
-    * @Description: 작성자 이름 추가
-
-    * @date : 2023-03-27 
-    * @author : AJS
-    * @Description: 작성자 email 추가, 게시글 삭제시 작성자 검증필요
-    **/
+ * @date : 2023-01-23
+ * @author : AJS
+ * @Description: 작성자 이름 추가
+ * 
+ * @date : 2023-03-27
+ * @author : AJS
+ * @Description: 작성자 email 추가, 게시글 삭제시 작성자 검증필요
+ **/
 
 @Entity
 @Getter
 @Setter
 // @ToString(exclude = "fileInfoList")
-@ToString
-@DynamicUpdate   //변경된 필드만 업데이트
-public class BoardInfo extends BaseEntity{
-    
-    @Id 
+
+@DynamicUpdate // 변경된 필드만 업데이트
+@AllArgsConstructor
+@Builder
+@Accessors(chain = true)
+public class BoardInfo extends BaseEntity {
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "board_id")
     private Long id;
@@ -59,88 +64,42 @@ public class BoardInfo extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private BoardStatus boardStatus;
 
-    
-    // @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch = FetchType.LAZY)
+    // @OneToMany(mappedBy = "boardInfo",orphanRemoval = true, fetch =
+    // FetchType.EAGER, cascade = CascadeType.ALL)
+    @Builder.Default
+    @OneToMany(mappedBy = "boardInfo", cascade = CascadeType.ALL)
     private List<FileInfo> fileInfoList = new ArrayList<>();
 
-
-    public static class BoardInfoBuilder{
-        private Long id;
-
-        private String email;
-
-        private String userName;
-        
-        private String title;
-
-        private String content;
-
-        private BoardStatus boardStatus;
-
-        private List<FileInfo> fileInfoList = new ArrayList<>();
-
-        // public BoardInfoBuilder builder(){
-        //     return this;
-        // }
-
-        public BoardInfoBuilder id(Long id){
-            this.id = id;
-            return this;
-        }
-
-        public BoardInfoBuilder userName(String userName){
-            this.userName = userName;
-            return this;
-        }
-
-        public BoardInfoBuilder title(String title){
-            this.title = title;
-            return this;
-        }
-
-        public BoardInfoBuilder content(String content){
-            this.content = content;
-            return this;
-        }
-
-        public BoardInfoBuilder boardStatus(BoardStatus boardStatus){
-            this.boardStatus = boardStatus;
-            return this;
-        }
-
-        public BoardInfoBuilder fileInfoList(List<FileInfo> fileInfoList){
-            this.fileInfoList.addAll(fileInfoList);
-            return this;
-        }
-
-        public BoardInfoBuilder email(String email){
-            this.email = email;
-            return this;
-        }
-
-        public BoardInfo build(){
-            return new BoardInfo(this);
-        }
+    @Override
+    public String toString() {
+        // TODO Auto-generated method stub
+        String toString = "[ "
+                + this.id + " "
+                + this.userName + " "
+                + this.email + " "
+                + this.title + " "
+                + this.content + " "
+                + this.boardStatus + " "
+                + "]";
+        return toString;
     }
 
-    public BoardInfo(BoardInfoBuilder boardInfoBuilder){
-        this.id = boardInfoBuilder.id;
-        this.email = boardInfoBuilder.email;
-        this.userName = boardInfoBuilder.userName;
-        this.title = boardInfoBuilder.title;
-        this.content = boardInfoBuilder.content;
-        this.boardStatus = boardInfoBuilder.boardStatus;
-        this.fileInfoList = boardInfoBuilder.fileInfoList;
+    public BoardInfo() {
     }
 
-    public BoardInfo(){}
-
-    public void updateFile(List<FileInfo> fileList){
-        if(this.fileInfoList != null){
+    public void updateFile(List<FileInfo> fileList) {
+        if (this.fileInfoList != null) {
             this.fileInfoList.removeAll(this.fileInfoList);
         }
-        // this.fileInfoList = fileList;
         fileList.forEach(updateFile -> fileInfoList.add(updateFile));
+    }
+
+    public void addFile(FileInfo file) {
+        this.fileInfoList.add(file);
+        file.setBoardInfo(this);
+    }
+
+    public void addFiles(List<FileInfo> files) {
+        this.fileInfoList = files;
     }
 }

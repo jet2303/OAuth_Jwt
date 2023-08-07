@@ -7,12 +7,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
+import com.example.jwt_oauth.payload.error.ErrorCode;
+import com.example.jwt_oauth.payload.error.RestApiException;
+import com.example.jwt_oauth.payload.error.errorCodes.UserErrorCode;
 import com.example.jwt_oauth.service.user.auth.CustomUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@Component
 public class CustomAuthenticationProvider implements AuthenticationProvider{
 
     private final CustomUserDetailsService customUserDetailsService;
@@ -27,10 +32,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider{
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
         if(userDetails==null){
-            throw new BadCredentialsException("등록되지 않은 사용자.");
+            // throw new BadCredentialsException("등록되지 않은 사용자.");
+            throw new RestApiException(UserErrorCode.NOT_FOUND_USER);
         }
         if(!passwordEncoder.matches(password, userDetails.getPassword())){
-            throw new BadCredentialsException("password 오류.");
+            // throw new BadCredentialsException("등록되지 않은 사용자.");
+            throw new RestApiException(UserErrorCode.NOT_MATCHED_PASSWORD);
         }
 
         UsernamePasswordAuthenticationToken authenticationToken 

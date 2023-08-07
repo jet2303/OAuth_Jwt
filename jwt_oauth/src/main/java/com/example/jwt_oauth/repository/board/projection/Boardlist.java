@@ -12,7 +12,6 @@ public interface Boardlist {
     String getUserName();
     String getTitle();
     String getContent();
-
     LocalDateTime getCreatedDate();
     String getCreatedBy();
     LocalDateTime getModifiedDate();

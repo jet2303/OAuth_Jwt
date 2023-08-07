@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.jwt_oauth.config.security.token.UserPrincipal;
 import com.example.jwt_oauth.domain.user.User;
+import com.example.jwt_oauth.payload.error.RestApiException;
+import com.example.jwt_oauth.payload.error.errorCodes.UserErrorCode;
 import com.example.jwt_oauth.repository.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService{
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         
-        User user = userRepository.findByEmail(email).orElseThrow( () -> new UsernameNotFoundException("not found User"));
+        User user = userRepository.findByEmail(email).orElseThrow( () -> new RestApiException(UserErrorCode.NOT_FOUND_USER));
         return UserPrincipal.create(user);
     }
 

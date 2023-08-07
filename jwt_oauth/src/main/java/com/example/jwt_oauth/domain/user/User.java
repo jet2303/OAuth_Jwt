@@ -1,7 +1,10 @@
 package com.example.jwt_oauth.domain.user;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
@@ -10,6 +13,10 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
+
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.example.jwt_oauth.domain.time.DefaultTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,9 +33,10 @@ import lombok.ToString;
 @Getter
 @Builder
 @RequiredArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @Table(name="_user")
 @ToString
+@DynamicUpdate
 public class User extends DefaultTime{
     
     @Id
@@ -43,7 +51,7 @@ public class User extends DefaultTime{
 
     private String imageUrl;
 
-    private Boolean emailVerified = false;
+    private Boolean emailVerified;
 
     @JsonIgnore
     private String password;
@@ -60,9 +68,8 @@ public class User extends DefaultTime{
     @Enumerated
     private UserEnum useyn;
 
-    // public User(){
 
-    // }
+
 
     // public User(Long id,String name, String email, UserEnum useyn){
     //     this.id = id;
@@ -72,8 +79,8 @@ public class User extends DefaultTime{
     // }
 
     @Builder
-    public User(String name, String email, UserEnum useyn, String imageUrl, Boolean emailVerifired, 
-    String password, Provider provider, Role role, String providerId){
+    public User(String name, String email, String imageUrl, Boolean emailVerifired, 
+                String password, Provider provider, Role role, String providerId, UserEnum useyn){
         this.name = name;
         this.email = email;
         this.useyn = useyn;
@@ -83,6 +90,7 @@ public class User extends DefaultTime{
         this.provider = provider;
         this.providerId = providerId;
         this.role = role;
+        
     }
     
     public void updateName(String name){

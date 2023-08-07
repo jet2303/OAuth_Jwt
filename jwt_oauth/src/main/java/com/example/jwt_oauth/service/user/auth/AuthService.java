@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,11 +20,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.example.jwt_oauth.config.security.auth.CustomAuthenticationProvider;
 import com.example.jwt_oauth.config.security.token.UserPrincipal;
 import com.example.jwt_oauth.domain.mapping.TokenMapping;
 import com.example.jwt_oauth.domain.user.Provider;
@@ -35,6 +38,7 @@ import com.example.jwt_oauth.payload.request.auth.RefreshTokenRequest;
 import com.example.jwt_oauth.payload.request.auth.SignInRequest;
 import com.example.jwt_oauth.payload.request.auth.SignUpRequest;
 import com.example.jwt_oauth.payload.response.ApiResponse;
+import com.example.jwt_oauth.payload.response.ExceptionResponse;
 import com.example.jwt_oauth.payload.response.Message;
 import com.example.jwt_oauth.payload.response.auth.AuthResponse;
 import com.example.jwt_oauth.repository.auth.TokenRepository;
@@ -55,6 +59,8 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+
+    private final CustomAuthenticationProvider customAuthenticationProvider;
 
     public ResponseEntity<?> whoAmI(UserPrincipal userPrincipal){
         // Optional<User> user = userRepository.findById(userPrincipal.getId());
@@ -80,6 +86,7 @@ public class AuthService {
                                             .build());
     }
 
+    @Transactional
     public ResponseEntity<ApiResponse> modify(UserPrincipal userPrincipal, ChangePasswordRequest changePasswordRequest){
         Optional<User> user = userRepository.findById(userPrincipal.getId());
         Boolean chkPassword = passwordEncoder.matches(changePasswordRequest.getOldPassword(), 
@@ -105,19 +112,43 @@ public class AuthService {
         );
     }
 
+    public ResponseEntity<AuthResponse> provider_signin(SignInRequest signInRequest, HttpServletResponse response){
+        Authentication authentication = customAuthenticationProvider.authenticate(
+            new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword()));
+        
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        TokenMapping tokenMapping = customTokenProviderService.createToken(authentication);
+        Token token = Token.builder()    
+                                .userEmail(tokenMapping.getUserEmail())
+                                .refreshToken(tokenMapping.getRefreshToken())
+                                .build();
+        tokenRepository.save(token);
+        AuthResponse authResponse = AuthResponse.builder()
+                                                .accessToken(tokenMapping.getAccessToken())
+                                                .refreshToken(token.getRefreshToken())
+                                                .build();
+                                                
+        URI location = ServletUriComponentsBuilder
+                        .fromCurrentContextPath()
+                        .path("/page")
+                        // .buildAndExpand(user.getId())
+                        .buildAndExpand()
+                        .toUri();
+
+        try{
+            response.sendRedirect("/page");
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        
+        log.info("access token = {}", tokenMapping.getAccessToken());
+        return ResponseEntity.created(location).body(authResponse);
+    }
+
     public ResponseEntity<AuthResponse> signin(SignInRequest signInRequest, HttpServletResponse response){
 
-        // log.info("{}", passwordEncoder.matches(signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword() ) );
-        // log.info("{}, {}", signInRequest.getPassword(), userRepository.findByEmail(signInRequest.getEmail()).get().getPassword());
-
         //password 안맞는 경우 값이 return 되어 다음에 로그인 시도시 패스워드에 추가되어 request 되는 경우 수정할것.
-        // try{
-        //     Authentication authentication = authenticationManager.authenticate(
-        //     new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword())
-        // );
-        // }catch(BadCredentialsException e){
-        //     e.printStackTrace();
-        // }
         
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(signInRequest.getEmail(), signInRequest.getPassword())
@@ -133,6 +164,7 @@ public class AuthService {
                 e.printStackTrace();
             }
         }
+        
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         TokenMapping tokenMapping = customTokenProviderService.createToken(authentication);
@@ -168,14 +200,21 @@ public class AuthService {
     
     public ResponseEntity<ApiResponse> signup(SignUpRequest signUpRequest, HttpServletResponse response){
         
-        Optional<User> userChk = userRepository.findByEmail(signUpRequest.getEmail());
-        if(!userChk.isEmpty()){
+        Optional<User> alreadyChkId = userRepository.findByEmail(signUpRequest.getEmail());
+        if(!alreadyChkId.isEmpty()){
             response.setContentType("text/html; charset=euc-kr");
             
             try{
                 PrintWriter out = response.getWriter();
                 out.println("<script>alert('" + "이미 등록된 계정입니다." + "'); history.go(-1);</script>");
                 out.flush();
+
+                // return new ExceptionResponse(400, "이미 등록된 계정입니다.");
+                return ResponseEntity.ok(ApiResponse.builder()
+                                                    .check(true)
+                                                    .newInformation(new ExceptionResponse(400, "존재하는 계정1"))
+                                                    .information(new ExceptionResponse(400, "존재하는 계정2"))
+                                                    .build());          
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -265,11 +304,11 @@ public class AuthService {
         Token userToken = tokenRepository.findByUserEmail(userEmail).get();
         
         boolean checkValid = valid(userToken.getRefreshToken());
-        try{
-            response.sendRedirect("/loginPage");
-        }catch(IOException e){
-            e.printStackTrace();
-        }
+        // try{
+        //     response.sendRedirect("/loginPage");
+        // }catch(IOException e){
+        //     e.printStackTrace();
+        // }
         
         if(checkValid != false){
             Optional<Token> token = tokenRepository.findByRefreshToken(userToken.getRefreshToken());
@@ -314,4 +353,8 @@ public class AuthService {
         }
         return false;
     }
+
+
+
+    
 }

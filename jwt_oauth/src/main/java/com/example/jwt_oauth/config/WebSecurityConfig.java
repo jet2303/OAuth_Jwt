@@ -120,8 +120,13 @@ public class WebSecurityConfig {
                 .failureHandler(customUrlAuthenticationFailureHandler)
                 .and()
             .logout()
-                .permitAll()
+                // .permitAll()
+                .logoutSuccessUrl("/loginPage")	//로그아웃 시 가지는 페이지
+                .invalidateHttpSession(true)	// 세션 초기화
+                .deleteCookies("JSESSIONID")
                 .and()
+            .exceptionHandling()
+                .and()            
             .csrf()
                 .disable()
                 // .setSharedObject(RememberMeServices.class, tokenBasedRememberMeServices())

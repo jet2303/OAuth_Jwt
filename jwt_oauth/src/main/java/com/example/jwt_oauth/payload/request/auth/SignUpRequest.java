@@ -4,13 +4,14 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-// @Getter
+@ToString
 public class SignUpRequest {
     
     @NotBlank
@@ -25,4 +26,12 @@ public class SignUpRequest {
 
     @NotBlank
     private String role;
+
+    @Builder
+    public SignUpRequest(String name, String email, String password, String role){
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
 }

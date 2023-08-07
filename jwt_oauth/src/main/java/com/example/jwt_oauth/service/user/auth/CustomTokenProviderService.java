@@ -1,6 +1,7 @@
 package com.example.jwt_oauth.service.user.auth;
 
 import java.security.Key;
+import java.security.Principal;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import com.example.jwt_oauth.config.OAuth2Config;
 import com.example.jwt_oauth.config.security.token.UserPrincipal;
 import com.example.jwt_oauth.domain.mapping.TokenMapping;
+import com.example.jwt_oauth.domain.user.User;
+import com.example.jwt_oauth.repository.user.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -21,11 +24,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
 @Service
 @Slf4j
+// 생성자 주입 수정
+// @RequiredArgsConstructor
 public class CustomTokenProviderService {
 
     @Autowired
@@ -34,7 +40,12 @@ public class CustomTokenProviderService {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
+    private UserRepository userRepository;
+
+
     public TokenMapping refreshToken(Authentication authentication, String refreshToken){
+        
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Date now = new Date();
 
@@ -59,8 +70,21 @@ public class CustomTokenProviderService {
     }
 
     public TokenMapping createToken(Authentication authentication){
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        //////////////////////////////////////// 07.03 AJS 수정 ////////////////////////////////////////
+        String email = (String) authentication.getPrincipal();
+        User findUser = userRepository.findByEmail(email).get();
+        // User user = User.builder()
+        //                 .id(findUser.getId())
+        //                 .email(findUser.getEmail())
+        //                 .password(findUser.getPassword())
+        //                 .name(findUser.getName())
+        //                 .role(findUser.getRole())
+        //                 .build();
+        UserPrincipal userPrincipal = UserPrincipal.create(findUser);
+      
+        /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        // UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Date now = new Date();
 
         Date accessTokenExpiresIn = new Date(now.getTime() + oAuth2Config.getAuth().getAccessTokenExpirationMsec());

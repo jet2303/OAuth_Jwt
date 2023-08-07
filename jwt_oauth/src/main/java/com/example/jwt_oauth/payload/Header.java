@@ -48,6 +48,14 @@ public class Header<T> {
                                     .build();
     }
 
+    public static <T> Header<T> ERROR(T data){
+        return (Header<T> ) Header.builder()
+                                    .transactionTime(LocalDateTime.now())
+                                    .resultCode("ERROR")
+                                    .data(data)
+                                    .build();
+    }
+
     //DATA OK(메소드 오버로딩 pagenation)
     public static <T> Header<T> OK(T data, Pagenation pagenation){                 
         return (Header<T>) Header.builder()

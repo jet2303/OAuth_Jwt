@@ -12,9 +12,13 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.example.jwt_oauth.domain.user.User;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.ToString;
 
 @ToString
+@Builder
+@AllArgsConstructor
 public class UserPrincipal implements OAuth2User, UserDetails{
 
     private Long id;
@@ -30,9 +34,7 @@ public class UserPrincipal implements OAuth2User, UserDetails{
         this.id = id;
         this.email = email;
         this.password = password;
-
         this.userName = userName;
-
         this.authorities = authorities;
     }
 
@@ -47,6 +49,7 @@ public class UserPrincipal implements OAuth2User, UserDetails{
         userPrincipal.setAttributes(attributes);
         return userPrincipal;
     }
+
 
 
     public void setAttributes(Map<String, Object> attributes){

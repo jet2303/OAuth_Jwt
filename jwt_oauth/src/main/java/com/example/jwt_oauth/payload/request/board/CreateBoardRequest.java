@@ -32,6 +32,6 @@ public class CreateBoardRequest {
 
     private String content;
 
-    private BoardStatus boardStatus = BoardStatus.REGISTERED;
+    private BoardStatus boardStatus;
 
 }

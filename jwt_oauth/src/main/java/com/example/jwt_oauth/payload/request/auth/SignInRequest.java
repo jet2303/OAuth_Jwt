@@ -4,6 +4,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 // @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class SignInRequest {
     
     // import io.swagger.v3.oas.annotations.media.Schema;
