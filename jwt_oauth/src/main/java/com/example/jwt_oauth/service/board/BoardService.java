@@ -65,8 +65,10 @@ public class BoardService {
     private final FileInfoRepository fileInfoRepository;
     private final EntityManager entityManager;
 
-    // String filePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
-    String filePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
+    String filePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
+    // String filePath =
+    // "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
+
     /**
      * @date : 2023-01-20
      * @author : AJS
@@ -98,7 +100,6 @@ public class BoardService {
 
     }
 
-    
     public Header<BoardApiResponse> read(final Long id) {
 
         BoardInfo boardInfo = boardRepository.readQuery(id)
@@ -172,23 +173,22 @@ public class BoardService {
         }
 
         BoardInfo savedBoard = boardRepository.save(boardInfo);
-        
-        return Header.OK(BoardApiResponse.builder()
-                                            .id(savedBoard.getId())
-                                            .email(savedBoard.getEmail())
-                                            .userName(savedBoard.getUserName())
-                                            .title(savedBoard.getTitle())
-                                            .content(savedBoard.getContent())
-                                            .boardStatus(savedBoard.getBoardStatus().toString())
-                                            .createdDate(savedBoard.getCreatedDate())
-                                            .createBy(savedBoard.getCreatedBy())
-                                            .modifiedDate(savedBoard.getModifiedDate())
-                                            .modifiedBy(savedBoard.getModifiedBy())
-                                            .fileList(savedBoard.getFileInfoList())
-                                            .build());
-        
-    }
 
+        return Header.OK(BoardApiResponse.builder()
+                .id(savedBoard.getId())
+                .email(savedBoard.getEmail())
+                .userName(savedBoard.getUserName())
+                .title(savedBoard.getTitle())
+                .content(savedBoard.getContent())
+                .boardStatus(savedBoard.getBoardStatus().toString())
+                .createdDate(savedBoard.getCreatedDate())
+                .createBy(savedBoard.getCreatedBy())
+                .modifiedDate(savedBoard.getModifiedDate())
+                .modifiedBy(savedBoard.getModifiedBy())
+                .fileList(savedBoard.getFileInfoList())
+                .build());
+
+    }
 
     @Transactional
     public void delete(UserPrincipal userPrincipal, final Long id) {
