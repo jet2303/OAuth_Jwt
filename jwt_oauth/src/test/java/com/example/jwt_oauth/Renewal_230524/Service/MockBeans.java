@@ -12,7 +12,7 @@ import com.example.jwt_oauth.service.board.BoardService;
 import com.example.jwt_oauth.service.user.UserService;
 import com.example.jwt_oauth.service.user.auth.AuthService;
 
-public abstract class MockBeans {
+public abstract class   MockBeans {
 
     @Autowired
     protected BoardService boardService;

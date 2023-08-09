@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -65,9 +66,12 @@ public class BoardService {
     private final FileInfoRepository fileInfoRepository;
     private final EntityManager entityManager;
 
-    String filePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
-    // String filePath =
-    // "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
+    @Value("${my.file.file.labtop.path}")
+    private String filePath;
+    @Value("${my.file.folder.labtop.path}")
+    private String folderPath;
+    // String filePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
+    // String filePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
 
     /**
      * @date : 2023-01-20
@@ -140,7 +144,7 @@ public class BoardService {
 
     // 권한 여부에 따른 수정 유무 로직 추가할것.
     @Transactional
-    // @Modifying
+    // @Modiying
     public Header<BoardApiResponse> update(final CreateBoardRequest request, final List<MultipartFile> files,
             UserPrincipal userPrincipal, Long id) {
 
@@ -157,7 +161,7 @@ public class BoardService {
         try {
             for (MultipartFile file : files) {
                 String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                File saveFile = new File(filePath, fileName);
+                File saveFile = new File(folderPath, fileName);
                 file.transferTo(saveFile);
 
                 FileInfo fileInfo = FileInfo.builder()
@@ -369,7 +373,8 @@ public class BoardService {
             if (files != null && emptyFileChk(files)) {
                 for (MultipartFile file : files) {
                     String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                    File saveFile = new File(filePath, fileName);
+                    // File saveFile = new File(filePath, fileName);
+                    File saveFile = new File(folderPath, fileName);
                     file.transferTo(saveFile);
 
                     FileInfo fileInfo = FileInfo.builder()

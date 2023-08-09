@@ -22,6 +22,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.core.AutoConfigureCache;
@@ -45,6 +46,7 @@ import com.example.jwt_oauth.payload.error.RestApiException;
 import com.example.jwt_oauth.payload.request.auth.SignInRequest;
 import com.example.jwt_oauth.payload.request.board.CreateBoardRequest;
 import com.example.jwt_oauth.payload.response.board.BoardApiResponse;
+import com.example.jwt_oauth.service.board.BoardService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,17 +67,20 @@ public class BoardServiceTest extends MockBeans {
 
         private List<MultipartFile> mFiles = new ArrayList<>();
 
-        // @Value("${}")
-        // private String labtop;
+        @Value("${my.file.file.labtop.path}")
+        private String filePath;
 
-        // @Value("${}")
-        // private String pc;
+        @Value("${my.file.folder.labtop.path}")
+        private static String folderPath;
 
-        private final String labtop_inputFilePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png";
-        private final String labtop_inputFolderPath = "";
-        private final String pc_inputFilePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png";
-        private static final String pc_inputFolderPath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
+        @Autowired
+        private BoardService boardService;
 
+        // private final String labtop_inputFilePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png";
+        // private static final String labtop_inputFolderPath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files\\";
+        // private final String pc_inputFilePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png";
+        // private static final String pc_inputFolderPath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
+        
         @BeforeEach
         void setUp() {
                 SignInRequest request = SignInRequest.builder()
@@ -92,13 +97,14 @@ public class BoardServiceTest extends MockBeans {
                 userService.delete("test1@naver.com");
         }
 
-        @After
-        void last() {
+        @AfterAll
+        static void last() {
                 deleteFile();
         }
 
         private static void deleteFile() {
-                String filePath = pc_inputFolderPath;
+                // String filePath = folderPath;
+                String filePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
                 File deleteFolder = new File(filePath);
                 File[] deleteFileList = deleteFolder.listFiles();
                 for (File file : deleteFileList) {
@@ -119,13 +125,13 @@ public class BoardServiceTest extends MockBeans {
         @Order(1)
         @Test
         void 게시글생성_성공() throws Exception {
-
+                log.info("{} {}", filePath, folderPath);
                 Header<BoardApiResponse> result = boardCreate(1, 2);
 
                 Long id = result.getData().getId();
                 assertEquals("request title 1", boardService.read(id).getData().getTitle());
                 assertEquals("request content 1", boardService.read(id).getData().getContent());
-                assertEquals(3, result.getData().getFileList().size());
+                assertEquals(2, result.getData().getFileList().size());
         }
 
         // Create Error - AnonyMous
@@ -147,13 +153,11 @@ public class BoardServiceTest extends MockBeans {
                 MockMultipartFile file1 = new MockMultipartFile("image1",
                                 "test.png",
                                 "image/png",
-                                new FileInputStream(
-                                                "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
+                                new FileInputStream(filePath));
                 MockMultipartFile file2 = new MockMultipartFile("image2",
                                 "test.png",
                                 "image/png",
-                                new FileInputStream(
-                                                "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
+                                new FileInputStream(filePath));
 
                 mFiles.add((MultipartFile) file1);
                 mFiles.add((MultipartFile) file2);
@@ -196,12 +200,12 @@ public class BoardServiceTest extends MockBeans {
                 MockMultipartFile file1 = new MockMultipartFile("image1",
                                 "test.png",
                                 "image/png",
-                                new FileInputStream(pc_inputFilePath));
+                                new FileInputStream(filePath));
 
                 MockMultipartFile file2 = new MockMultipartFile("image2",
                                 "test.png",
                                 "image/png",
-                                new FileInputStream(pc_inputFilePath));
+                                new FileInputStream(filePath));
 
                 mFiles.add((MultipartFile) file1);
                 mFiles.add((MultipartFile) file2);
@@ -245,15 +249,12 @@ public class BoardServiceTest extends MockBeans {
                 MockMultipartFile file1 = new MockMultipartFile("image1",
                                 "test.png",
                                 "image/png",
-                                new FileInputStream(pc_inputFilePath));
-                // new FileInputStream(
-                // "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
+                                new FileInputStream(filePath));
+                
                 MockMultipartFile file2 = new MockMultipartFile("image2",
                                 "test.png",
                                 "image/png",
-                                new FileInputStream(pc_inputFilePath));
-                // new FileInputStream(
-                // "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
+                                new FileInputStream(filePath));
 
                 mFiles.add((MultipartFile) file1);
                 mFiles.add((MultipartFile) file2);
@@ -279,27 +280,28 @@ public class BoardServiceTest extends MockBeans {
                                 .authorities(authentication.getAuthorities())
                                 .build();
 
-                CreateBoardRequest request = CreateBoardRequest.builder()
-                                .title("title")
-                                .email(userPrincipal.getEmail())
-                                .userName(userPrincipal.getUserName())
-                                .content("content")
-                                .boardStatus(BoardStatus.REGISTERED)
-                                .build();
-                try {
-                        MockMultipartFile file1 = new MockMultipartFile("image1",
-                                        "test10.png",
-                                        "image/png",
-                                        new FileInputStream(pc_inputFilePath));
-                        // new FileInputStream(
-                        // "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
-                        mFiles.add(file1);
-                } catch (IOException e) {
-                        e.printStackTrace();
-                }
+                // CreateBoardRequest request = CreateBoardRequest.builder()
+                //                 .title("title")
+                //                 .email(userPrincipal.getEmail())
+                //                 .userName(userPrincipal.getUserName())
+                //                 .content("content")
+                //                 .boardStatus(BoardStatus.REGISTERED)
+                //                 .build();
+                // try {
+                //         MockMultipartFile file1 = new MockMultipartFile("image1",
+                //                         "test10.png",
+                //                         "image/png",
+                //                         new FileInputStream(filePath));
 
-                Long createdId = boardService.create(request, mFiles, userPrincipal).getData().getId();
+                //         mFiles.add(file1);
+                // } catch (IOException e) {
+                //         e.printStackTrace();
+                // }
 
+                // Long createdId = boardService.create(request, mFiles, userPrincipal).getData().getId();
+                Long createdId = boardCreate(1, 2).getData().getId();
+
+                
                 CreateBoardRequest request1 = CreateBoardRequest.builder()
                                 .title("update title")
                                 .email(userPrincipal.getEmail())
@@ -311,21 +313,20 @@ public class BoardServiceTest extends MockBeans {
                         MockMultipartFile file1 = new MockMultipartFile("image1",
                                         "test1.png",
                                         "image/png",
-                                        new FileInputStream(pc_inputFilePath));
-                        // new FileInputStream(
-                        // "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test3.png"));
+                                        new FileInputStream(filePath));
 
                         MockMultipartFile file2 = new MockMultipartFile("image2",
                                         "test2.png",
                                         "image/png",
-                                        new FileInputStream(pc_inputFilePath));
-                        // new FileInputStream(
-                        // "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test3.png"));
-
+                                        new FileInputStream(filePath));
+                        MockMultipartFile file3 = new MockMultipartFile("image3",
+                                        "test3.png",
+                                        "image/png",
+                                        new FileInputStream(filePath));
                         mFiles.clear();
                         mFiles.add(file1);
                         mFiles.add(file2);
-
+                        mFiles.add(file3);
                 } catch (IOException e) {
                         e.printStackTrace();
                 }
@@ -334,7 +335,7 @@ public class BoardServiceTest extends MockBeans {
                 BoardApiResponse response1 = boardService.read(response.getId()).getData();
                 assertEquals("update title", response1.getTitle());
                 assertEquals("update content", response1.getContent());
-                assertEquals(2, response1.getFileList().size());
+                assertEquals(3, response1.getFileList().size());
         }
 
         // Update Error - Session 만료, JWT 만료, 로그아웃 된상태
@@ -369,9 +370,7 @@ public class BoardServiceTest extends MockBeans {
                                 MockMultipartFile file = new MockMultipartFile("image " + String.valueOf(i),
                                                 "test.png",
                                                 "image/png",
-                                                new FileInputStream(pc_inputFilePath));
-                                // new FileInputStream(
-                                // "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png"));
+                                                new FileInputStream(filePath));
 
                                 mFiles.add((MultipartFile) file);
 
