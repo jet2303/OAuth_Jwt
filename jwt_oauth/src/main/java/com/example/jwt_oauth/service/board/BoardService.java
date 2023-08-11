@@ -66,12 +66,17 @@ public class BoardService {
     private final FileInfoRepository fileInfoRepository;
     private final EntityManager entityManager;
 
-    @Value("${my.file.file.labtop.path}")
+    // @Value("${my.file.file.labtop.path}")
+    @Value("${my.file.file.pc.path}")
     private String filePath;
-    @Value("${my.file.folder.labtop.path}")
-    private String folderPath;
-    // String filePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
-    // String filePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
+
+    private static String folderPath;
+
+    // @Value("${my.file.folder.labtop.path}")
+    @Value("${my.file.folder.pc.path}")
+    public void setFolderPath(String folderPath) {
+        BoardService.folderPath = folderPath;
+    }
 
     /**
      * @date : 2023-01-20
