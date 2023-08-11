@@ -67,20 +67,19 @@ public class BoardServiceTest extends MockBeans {
 
         private List<MultipartFile> mFiles = new ArrayList<>();
 
-        @Value("${my.file.file.labtop.path}")
+        @Value("${my.file.file.pc.path}")
         private String filePath;
 
-        @Value("${my.file.folder.labtop.path}")
         private static String folderPath;
 
         @Autowired
         private BoardService boardService;
 
-        // private final String labtop_inputFilePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png";
-        // private static final String labtop_inputFolderPath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files\\";
-        // private final String pc_inputFilePath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\test\\java\\com\\example\\jwt_oauth\\resources\\test.png";
-        // private static final String pc_inputFolderPath = "F:\\fastcampus\\97_OAuth_Jwt_board\\jwt_oauth\\src\\main\\resources\\static\\files";
-        
+        @Value("${my.file.folder.pc.path}")
+        public void setFolderPath(String folderPath) {
+                BoardServiceTest.folderPath = folderPath;
+        }
+
         @BeforeEach
         void setUp() {
                 SignInRequest request = SignInRequest.builder()
@@ -103,8 +102,9 @@ public class BoardServiceTest extends MockBeans {
         }
 
         private static void deleteFile() {
-                // String filePath = folderPath;
-                String filePath = "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
+                String filePath = folderPath;
+                // String filePath =
+                // "C:\\Users\\Su\\Desktop\\Spring\\OAuth_Jwt\\jwt_oauth\\src\\main\\resources\\static\\files";
                 File deleteFolder = new File(filePath);
                 File[] deleteFileList = deleteFolder.listFiles();
                 for (File file : deleteFileList) {
@@ -250,7 +250,7 @@ public class BoardServiceTest extends MockBeans {
                                 "test.png",
                                 "image/png",
                                 new FileInputStream(filePath));
-                
+
                 MockMultipartFile file2 = new MockMultipartFile("image2",
                                 "test.png",
                                 "image/png",
@@ -281,27 +281,27 @@ public class BoardServiceTest extends MockBeans {
                                 .build();
 
                 // CreateBoardRequest request = CreateBoardRequest.builder()
-                //                 .title("title")
-                //                 .email(userPrincipal.getEmail())
-                //                 .userName(userPrincipal.getUserName())
-                //                 .content("content")
-                //                 .boardStatus(BoardStatus.REGISTERED)
-                //                 .build();
+                // .title("title")
+                // .email(userPrincipal.getEmail())
+                // .userName(userPrincipal.getUserName())
+                // .content("content")
+                // .boardStatus(BoardStatus.REGISTERED)
+                // .build();
                 // try {
-                //         MockMultipartFile file1 = new MockMultipartFile("image1",
-                //                         "test10.png",
-                //                         "image/png",
-                //                         new FileInputStream(filePath));
+                // MockMultipartFile file1 = new MockMultipartFile("image1",
+                // "test10.png",
+                // "image/png",
+                // new FileInputStream(filePath));
 
-                //         mFiles.add(file1);
+                // mFiles.add(file1);
                 // } catch (IOException e) {
-                //         e.printStackTrace();
+                // e.printStackTrace();
                 // }
 
-                // Long createdId = boardService.create(request, mFiles, userPrincipal).getData().getId();
+                // Long createdId = boardService.create(request, mFiles,
+                // userPrincipal).getData().getId();
                 Long createdId = boardCreate(1, 2).getData().getId();
 
-                
                 CreateBoardRequest request1 = CreateBoardRequest.builder()
                                 .title("update title")
                                 .email(userPrincipal.getEmail())

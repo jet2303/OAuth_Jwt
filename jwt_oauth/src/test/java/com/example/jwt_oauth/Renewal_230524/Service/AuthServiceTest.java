@@ -35,7 +35,6 @@ import com.example.jwt_oauth.service.user.auth.AuthService;
 import lombok.extern.slf4j.Slf4j;
 
 @SpringBootTest
-@Slf4j
 @Transactional
 public class AuthServiceTest extends MockBeans {
 
