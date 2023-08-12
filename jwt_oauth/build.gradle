@@ -47,6 +47,7 @@ dependencies {
 	//thymeleaf
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+
 	//thymeleaf sec tag
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
 
@@ -54,7 +55,10 @@ dependencies {
 	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 
 
-
+	testImplementation 'org.mockito:mockito-core:3.11.2'
+	testImplementation 'org.mockito:mockito-junit-jupiter:3.11.2'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+	testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
 
 	//mockito
 	// implementation 'org.mockito:mockito-android:3.7.7'

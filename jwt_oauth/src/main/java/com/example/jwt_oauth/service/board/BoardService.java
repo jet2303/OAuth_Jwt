@@ -63,17 +63,17 @@ import lombok.extern.slf4j.Slf4j;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final FileInfoRepository fileInfoRepository;
+    // private final FileInfoRepository fileInfoRepository;
     private final EntityManager entityManager;
 
-    // @Value("${my.file.file.labtop.path}")
-    @Value("${my.file.file.pc.path}")
+    @Value("${my.file.file.labtop.path}")
+    // @Value("${my.file.file.pc.path}")
     private String filePath;
 
     private static String folderPath;
 
-    // @Value("${my.file.folder.labtop.path}")
-    @Value("${my.file.folder.pc.path}")
+    @Value("${my.file.folder.labtop.path}")
+    // @Value("${my.file.folder.pc.path}")
     public void setFolderPath(String folderPath) {
         BoardService.folderPath = folderPath;
     }

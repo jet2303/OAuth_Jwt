@@ -67,18 +67,20 @@ public class BoardServiceTest extends MockBeans {
 
         private List<MultipartFile> mFiles = new ArrayList<>();
 
-        @Value("${my.file.file.pc.path}")
+        @Value("${my.file.file.labtop.path}")
         private String filePath;
 
         private static String folderPath;
 
-        @Autowired
-        private BoardService boardService;
-
-        @Value("${my.file.folder.pc.path}")
+        @Value("${my.file.folder.labtop.path}")
         public void setFolderPath(String folderPath) {
                 BoardServiceTest.folderPath = folderPath;
         }
+
+        @Autowired
+        private BoardService boardService;
+
+
 
         @BeforeEach
         void setUp() {
