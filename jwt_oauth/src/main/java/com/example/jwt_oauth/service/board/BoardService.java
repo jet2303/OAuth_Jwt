@@ -53,6 +53,8 @@ import com.example.jwt_oauth.repository.board.projection.Boardlist;
 import com.example.jwt_oauth.repository.user.UserRepository;
 
 import io.jsonwebtoken.lang.Strings;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,20 +62,26 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
+// @NoArgsConstructor
+// @AllArgsConstructor
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    // private final FileInfoRepository fileInfoRepository;
     private final EntityManager entityManager;
 
-    // @Value("${my.file.file.labtop.path}")
-    @Value("${my.file.file.pc.path}")
+    // public BoardService(BoardRepository boardRepository, EntityManager entityManager){
+    //     this.boardRepository = boardRepository;
+    //     this.entityManager = entityManager;
+    // }
+
+    @Value("${my.file.file.labtop.path}")
+    // @Value("${my.file.file.pc.path}")
     private String filePath;
 
     private static String folderPath;
 
-    // @Value("${my.file.folder.labtop.path}")
-    @Value("${my.file.folder.pc.path}")
+    @Value("${my.file.folder.labtop.path}")
+    // @Value("${my.file.folder.pc.path}")
     public void setFolderPath(String folderPath) {
         BoardService.folderPath = folderPath;
     }
@@ -101,7 +109,7 @@ public class BoardService {
         BoardInfo boardInfo = requestToBoard(request, userPrincipal);
         BoardInfoDto boardInfoDto = setBoardInfo(userPrincipal, boardInfo, files);
 
-        if (!files.isEmpty()) {
+        if (!boardInfoDto.getFileInfoList().isEmpty()) {
             return Header.OK(BoardApiResponse.from(boardInfoDto));
         } else {
             return Header.OK(BoardApiResponse.from(boardInfoDto));
@@ -396,7 +404,7 @@ public class BoardService {
         }
 
         BoardInfo savedBoard = boardRepository.save(newBoard);
-
+        log.info("{}", boardRepository.findAll());
         List<FileInfoDto> fileInfoDtos = fileToFileDto(fileList);
 
         return new BoardInfoDto.BoardInfoDtoBuilder()
@@ -414,7 +422,9 @@ public class BoardService {
 
     private List<FileInfoDto> fileToFileDto(List<FileInfo> fileList) {
         List<FileInfoDto> dtoList = new ArrayList<>();
-
+        if(fileList == null){
+            return dtoList;
+        }
         for (FileInfo fileInfo : fileList) {
             FileInfoDto dto = FileInfoDto.builder()
                     .id(fileInfo.getId())
